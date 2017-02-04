@@ -14,7 +14,7 @@
 
 	body {
 		/* min-width: (containers) */
-		min-width: 1200px;
+		min-width: 60em;
 	}
 
 	.container {
@@ -22,24 +22,24 @@
 		margin-right: auto;
 		
 		/* width: (containers) */
-		width: 1200px;
+		width: 60em;
 	}
 
 	/* Modifiers */
 	
 		.container.small {
 			/* width: (containers) * 0.75; */
-			width: 900px;
+			width: 45em;
 		}
 
 		.container.big {
 			width: 100%;
 
 			/* max-width: (containers) * 1.25; */
-			max-width: 1500px;
+			max-width: 75em;
 
 			/* min-width: (containers); */
-			min-width: 1200px;
+			min-width: 60em;
 		}
 
 /* Grid */
@@ -85,34 +85,26 @@
 			padding-top: 0 !important;
 		}
 
-		.row.uniform > * > :first-child {
-			margin-top: 0;
-		}
-
-		.row.uniform > * > :last-child {
-			margin-bottom: 0;
-		}
-
 		/* Normal */
 
 			.row > * {
-				/* padding-left: (gutters) */
-				padding-left: 40px;
+				/* padding-left: (gutters.vertical) */
+				padding-left: 2em;
 			}
 
 			.row + .row > * {
-				/* padding: (gutters) 0 0 (gutters) */
-				padding: 40px 0 0 40px;
+				/* padding: (gutters.horizontal) 0 0 (gutters.vertical) */
+				padding: 0 0 0 2em;
 			}
 
 			.row {
-				/* margin-left: -(gutters) */
-				margin-left: -40px;
+				/* margin-left: -(gutters.vertical) */
+				margin-left: -2em;
 			}
 
 			.row + .row.uniform > * {
 				/* padding: (gutters.vertical) 0 0 (gutters.vertical) */
-				padding: 40px 0 0 40px;
+				padding: 0 0 0 2em;
 			}
 
 		/* Flush */
@@ -136,87 +128,87 @@
 		/* Quarter */
 
 			.row.quarter > * {
-				/* padding-left: (gutters * 0.25) */
-				padding-left: 10px;
+				/* padding-left: (gutters.vertical * 0.25) */
+				padding-left: 0.5em;
 			}
 
 			.row + .row.quarter > * {
-				/* padding: (gutters * 0.25) 0 0 (gutters * 0.25) */
-				padding: 10px 0 0 10px;
+				/* padding: (gutters.horizontal * 0.25) 0 0 (gutters.vertical * 0.25) */
+				padding: 0 0 0 0.5em;
 			}
 
 			.row.quarter {
-				/* margin-left: -(gutters * 0.25) */
-				margin-left: -10px;
+				/* margin-left: -(gutters.vertical * 0.25) */
+				margin-left: -0.5em;
 			}
 
 			.row + .row.uniform.quarter > * {
 				/* padding: (gutters.vertical * 0.25) 0 0 (gutters.vertical * 0.25) */
-				padding: 10px 0 0 10px;
+				padding: 0 0 0 0.5em;
 			}
 
 		/* Half */
 
 			.row.half > * {
-				/* padding-left: (gutters * 0.5) */
-				padding-left: 20px;
+				/* padding-left: (gutters.vertical * 0.5) */
+				padding-left: 1em;
 			}
 
 			.row + .row.half > * {
-				/* padding: (gutters * 0.5) 0 0 (gutters * 0.5) */
-				padding: 20px 0 0 20px;
+				/* padding: (gutters.horizontal * 0.5) 0 0 (gutters.vertical * 0.5) */
+				padding: 0 0 0 1em;
 			}
 
 			.row.half {
-				/* margin-left: -(gutters * 0.5) */
-				margin-left: -20px;
+				/* margin-left: -(gutters.vertical * 0.5) */
+				margin-left: -1em;
 			}
 
 			.row + .row.uniform.half > * {
 				/* padding: (gutters.vertical * 0.5) 0 0 (gutters.vertical * 0.5) */
-				padding: 20px 0 0 20px;
+				padding: 0 0 0 1em;
 			}
 
 		/* One and (a) Half */
 
 			.row.oneandhalf > * {
-				/* padding-left: (gutters * 1.5) */
-				padding-left: 60px;
+				/* padding-left: (gutters.vertical * 1.5) */
+				padding-left: 3em;
 			}
 
 			.row + .row.oneandhalf > * {
-				/* padding: (gutters * 1.5) 0 0 (gutters * 1.5) */
-				padding: 60px 0 0 60px;
+				/* padding: (gutters.horizontal * 1.5) 0 0 (gutters.vertical * 1.5) */
+				padding: 0 0 0 3em;
 			}
 
 			.row.oneandhalf {
-				/* margin-left: -(gutters * 1.5) */
-				margin-left: -60px;
+				/* margin-left: -(gutters.vertical * 1.5) */
+				margin-left: -3em;
 			}
 
 			.row + .row.uniform.oneandhalf > * {
 				/* padding: (gutters.vertical * 1.5) 0 0 (gutters.vertical * 1.5) */
-				padding: 60px 0 0 60px;
+				padding: 0 0 0 3em;
 			}
 
 		/* Double */
 
 			.row.double > * {
-				/* padding-left: (gutters * 2) */
-				padding-left: 80px;
+				/* padding-left: (gutters.vertical * 2) */
+				padding-left: 4em;
 			}
 
 			.row + .row.double > * {
-				/* padding: (gutters * 2) 0 0 (gutters * 2) */
-				padding: 80px 0 0 80px;
+				/* padding: (gutters.horizontal * 2) 0 0 (gutters.vertical * 2) */
+				padding: 0 0 0 4em;
 			}
 
 			.row.double {
-				/* margin-left: -(gutters * 2) */
-				margin-left: -80px;
+				/* margin-left: -(gutters.vertical * 2) */
+				margin-left: -4em;
 			}
-			
+
 			.row + .row.uniform.double > * {
 				/* padding: (gutters.vertical * 2) 0 0 (gutters.vertical * 2) */
-				padding: 80px 0 0 80px;
+				padding: 0 0 0 4em;
 			}

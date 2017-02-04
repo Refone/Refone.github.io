@@ -1,4 +1,6 @@
-name: DopeTrope
-description: DopeTrope template for Jekyll
-paginate: 10
+name: Alpha
+description: Alphs template for Jekyll
 baseurl: '/refone.github.io'
+
+paginate: 10
+
