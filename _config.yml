@@ -1,6 +1,5 @@
 name: Alpha
 description: Alphs template for Jekyll
-baseurl: '/refone.github.io'
 
 paginate: 10
 
