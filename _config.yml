@@ -69,8 +69,8 @@ duoshuo_share: false                     # set to false if you want to use Comme
 
 # Sidebar settings
 sidebar: true                           # whether or not using Sidebar.
-sidebar-about-description: "这个人很懒，什么都没留下"
-sidebar-avatar: /img/avatar-hux.jpg      # use absolute URL, seeing it's used in both `/` and `/about/`
+sidebar-about-description: "我叫刘瑞丰，本科毕业于华中科技大学计算机专业，现在是上海交通大学在读研究生，软件工程专业，主要方向是操作系统与虚拟化。"
+sidebar-avatar: /img/avatar-refone.jpeg      # use absolute URL, seeing it's used in both `/` and `/about/`
 
 
 
