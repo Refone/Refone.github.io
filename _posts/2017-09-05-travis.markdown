@@ -1,0 +1,182 @@
+---
+layout:     post
+title:      "Travis CI 使用指南"
+subtitle:   "从注册到入门"
+date:       2017-09-05 12:00:00
+author:     "Refone"
+header-img: "img/glass.jpg"
+tags:
+    - 工具
+---
+
+# travis CI使用指南
+
+## 前言
+
+travis CI是一个代码自动测试与部署的开方平台，与GitHub相关联。当你一个GitHub中的某个项目与travis CI进行「绑定」后，你就可以体验travis CI为你带来的便捷——每当你push你的项目时，项目就会自动的在travis Server上的沙盒中按照你规定的测试方法进行测试，成功过后自动部署到你的部署服务器上面。而你所需做的「绑定」，不过是写一个.travis.yml脚本。
+
+这里涉及到了三台机器需要明确：
+
+**开发机：** 代码所在的机器，开发者在这台机器上面进行编码，然后git push到GitHub上面。
+  
+**部署机：** 代码正常工作所应在的机器。比如如果我们开发一个网站，最终我们要把这个网站的代码部署到公司的服务器上面才能正常上线被访问。那么公司的服务器就是我们的部署机。
+
+**travis Server：** 使用travis会引来第三台机器——travis平台的机器。travis会在我们push代码时自动帮我们测试，部署代码，而这一切都是在travis平台的机器上运行的。换句话说，.travis.yml中所执行的语句，执行环境都是travis机器的沙盒。
+
+## 示例详解
+
+#### 1.建立travis CI账号
+
+访问[travis CI官网](https://travis-ci.org/)，按照提示将travis CI账号与GitHub账号进行绑定，然后勾选需要travis跟踪的GitHub项目。注意这里有可能只能显示private的项目（如果你的GitHub上面没有private的项目那么就显示空白），不过可以通过某个地方设置把所有public的项目也显示出来。
+
+#### 2.将最原始的travis官方示例clone下来
+
+访问[travis-broken-example](https://github.com/plaindocs/travis-broken-example)，将它clone到开发机。里面有一个.travis.yml，在travis的网站上面勾上这个项目，那么每次在开发机上push这个项目都会执行travis的流程(详见[The Build Lifecycle](https://docs.travis-ci.com/user/customizing-the-build/#The-Build-Lifecycle))。
+这个broken example会导致build失败，不过将Test.php中的
+```
+    $this->assertEquals(1+1,1);
+```
+改为：
+```
+    $this->assertEquals(1+1,2);
+```
+即可通过travis的build。
+
+#### 3.定义自己的测试脚本
+
+.travis.yml中的 ```script:``` 即是需要跑得测试脚本，多测试脚本可参见文档，凡有一个测试脚本有非0返回值那么就build失败。
+
+本例添加文件 ```submodule.php``` ：
+```
+<?php
+class Module
+{
+    public function test() {
+        return 1;
+    }
+}
+?>
+```
+并修改Test.php:
+```
+<?php
+require "submodule.php";
+
+class Test extends PHPUnit_Framework_TestCase
+{
+    public function testOnePlusOne() {
+        $m = new Module();
+        $this->assertEquals($m->test(),1);
+    }
+}
+
+?>
+```
+同样可以通过build。
+
+#### 4.设置自动部署
+
+这是示例中比较麻烦的部分。主要麻烦之处在于ssh、scp等命令需要输入目标机器（部署机）的密码，而travis一切配置都在.travis.yml的脚本中，脚本没办法交互式的输入密码。
+
+travis给出的解决办法是：将私钥直接放在项目里，公钥放在部署机上面，travis在build的时候，可以指派使用项目中的私钥对部署机进行免密码通信。而私钥明文放在项目中是很不安全的，travis提供了方法将私钥加密后放在项目中，在travis build的时候才会解密（也就是说哪怕项目是public的，全世界也只有你和travis后台知道你的私钥）。
+
+> **公私钥系统规则：** 
+> 私钥只有自己知道，公钥全世界都知道。私钥加密可以用公钥解密；公钥加密能用私钥解密。公私钥相互配对，但从其中一个求解另一个是个数学难题。
+
+所以在这一步骤中，需要做如下事情：
+
+**(1) 生成一套公私钥**
+
+在开发机上，打开项目目录，输入：
+```
+ssh-keygen -f travis
+```
+会生成两个文件，travis是私钥，travis.pub是公钥。
+
+在部署机上找到 ```~/.ssh/authorized_keys``` 这个文件。这个文件是用来存别的机器的公钥的，里面每一行（很长的一行）都是一个别的机器的公钥。有了这个东西才代表这个机器曾经输对了密码ssh过你，是你信任的，不用再让他ssh的时候输密码了。将travis.pub添加到```~/.ssh/authorized_keys```的末尾。
+
+**(2) 加密私钥**
+
+首先需要一个2.0版本的ruby，可以用```ruby -v```查看当前开发机的ruby版本，如果低于2.0，可按照[2]中的步骤来安装一个正确版本的ruby。
+
+接下来，安装travis加密命令：
+```
+gem install travis
+```
+用GitHub账号进行登录：
+```
+travis login
+```
+加密私钥文件travis，并自动添加到.travis.yml中。
+```
+travis encrypt-file travis  --add
+```
+完成以上步骤后可以发现在```.travis.yml```文件中自动添加了几行：
+```
+before_install:
+ - openssl aes-256-cbc -K $encrypted_ebf374d9d5b3_key -iv $encrypted_ebf374d9d5b3_iv -in travis.enc -out ~/.ssh/id_rsa -d
+```
+
+其中```-in travis.enc```代表用加密后的私钥文件（travis.enc是由私钥文件travis加密而来），```-out ~/.ssh/id_rsa -d``` 代表将加密私钥文件解密后放在**travis server**上的```~/.ssh/id_rsa```中。完成这一步，就代表了可以有从travis server到部署机上的免密码通信。接下来所有脚本中的命令无密码执行也就成为了可能。
+
+
+**注意：** 自动生成的这两行可能在```-in```和```-out```的文件路径上不正确，需要自己调整。前面一大堆是自动生成的，不要照抄。
+
+除此之外，在```before_install```中加入另外两行命令：
+```
+before_install:
+ - openssl aes-256-cbc -K $encrypted_ebf374d9d5b3_key -iv $encrypted_ebf374d9d5b3_iv -in travis.enc -out ~/.ssh/id_rsa -d
+ - chmod 600 ~/.ssh/id_rsa
+ - echo -e "Host 111.231.57.187\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+```
+最后一条里面的ip写自己部署机的ip。记得是公网ip，不是192.168开头的那个ip。命令意义是设置免密码ssh。
+
+**(3) 设置known_hosts <sup>[1]</sup>**
+
+因为 travis-ci 默认只添加了 ```github.com```, ```gist.github.com``` 和 ```ssh.github.com``` 为 known_hosts，rsync 执行时会提示是否添加，但是 travis-ci 里不能输入确认，所以需要将自动服务器的域名和商品添加到 known_hosts，添加如下语句：
+```
+addons:
+  ssh_known_hosts: 111.231.57.187:1223
+```
+1223代表如果你的ssh默认端口不是22（ssh默认端口在目标机器的 ```/etc/ssh/sshd_config``` 中查看），可以这么写。如果是默认的22端口，只用写域名或者ip。
+
+**(4) 设置hooks**
+
+添加代码使得在build成功过后能自动部署到部署机上：
+```
+after_success:
+ - ssh root@111.231.57.187 'cd travis-broken-example && git pull'
+```
+
+完整的.travis.yml:
+```
+language: php
+php:
+- 5.5
+- 5.4
+
+before_install:
+- openssl aes-256-cbc -K $encrypted_ebf374d9d5b3_key -iv $encrypted_ebf374d9d5b3_iv -in travis.enc -out ~/.ssh/id_rsa -d
+- chmod 600 ~/.ssh/id_rsa
+- echo -e "Host 111.231.57.187\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+
+addons:
+  ssh_known_hosts: 111.231.57.187
+
+script: phpunit Test.php
+
+after_success:
+ - ssh root@111.231.57.187 'cd travis-broken-example && git pull'
+```
+
+## 使用
+
+在开发机上开发项目，git commit，git push之后，就会在travis上面自动build，build信息可以点开build jobs在Job Log中查看。如果成功，再查看部署机上的项目目录，发现刚刚push的最新版本的代码已经同步到了部署机上面。
+
+## 参考资料
+
+[1] [Hexo 博客 travis-ci 自动部署到VPS](https://uedsky.com/2016-06/travis-deploy/)
+
+[2] [一点都不高大上，手把手教你使用 Travis CI 实现持续部署](https://juejin.im/entry/5893590a128fe1006545a980)
+
+[3] [travis CI User Documents](https://docs.travis-ci.com/)

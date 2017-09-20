@@ -10,9 +10,9 @@
     <meta name="keyword"  content="">
     <link rel="shortcut icon" href="/img/favicon.ico">
 
-    <title>Welcome to Hux Blog - 刘瑞丰的博客 | Refone's Blog</title>
+    <title>Travis CI 使用指南 - 刘瑞丰的博客 | Refone's Blog</title>
 
-    <link rel="canonical" href="http://localhost:4000/2015/01/29/hello-2015/">
+    <link rel="canonical" href="http://localhost:4000/2017/09/05/travis/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -121,12 +121,12 @@
 
     <!-- Image to hack wechat -->
 <!-- <img src="/img/icon_wechat.png" width="0" height="0"> -->
-<!-- <img src="/img/post-bg-2015.jpg" width="0" height="0"> -->
+<!-- <img src="/img/glass.jpg" width="0" height="0"> -->
 
 <!-- Post Header -->
 <style type="text/css">
     header.intro-header{
-        background-image: url('/img/post-bg-2015.jpg')
+        background-image: url('/img/glass.jpg')
     }
 </style>
 <header class="intro-header" >
@@ -136,15 +136,15 @@
                 <div class="post-heading">
                     <div class="tags">
                         
-                        <a class="tag" href="/tags/#生活" title="生活">生活</a>
+                        <a class="tag" href="/tags/#工具" title="工具">工具</a>
                         
                     </div>
-                    <h1>Welcome to Hux Blog</h1>
+                    <h1>Travis CI 使用指南</h1>
                     
                     
-                    <h2 class="subheading"> "Hello World, Hello Blog"</h2>
+                    <h2 class="subheading">从注册到入门</h2>
                     
-                    <span class="meta">Posted by Hux on January 29, 2015</span>
+                    <span class="meta">Posted by Refone on September 5, 2017</span>
                 </div>
             </div>
         </div>
@@ -162,72 +162,178 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-				<blockquote>
-  <p>“Yeah It’s on. ”</p>
-</blockquote>
+				<h1 id="travis-ci使用指南">travis CI使用指南</h1>
 
 <h2 id="前言">前言</h2>
 
-<p>Hux 的 Blog 就这么开通了。</p>
+<p>travis CI是一个代码自动测试与部署的开方平台，与GitHub相关联。当你一个GitHub中的某个项目与travis CI进行「绑定」后，你就可以体验travis CI为你带来的便捷——每当你push你的项目时，项目就会自动的在travis Server上的沙盒中按照你规定的测试方法进行测试，成功过后自动部署到你的部署服务器上面。而你所需做的「绑定」，不过是写一个.travis.yml脚本。</p>
 
-<p><a href="#build">跳过废话，直接看技术实现 </a></p>
+<p>这里涉及到了三台机器需要明确：</p>
 
-<p>2015 年，Hux 总算有个地方可以好好写点东西了。</p>
+<p><strong>开发机：</strong> 代码所在的机器，开发者在这台机器上面进行编码，然后git push到GitHub上面。</p>
 
-<p>作为一个程序员， Blog 这种轮子要是挂在大众博客程序上就太没意思了。一是觉得大部分 Blog 服务都太丑，二是觉得不能随便定制不好玩。之前因为太懒没有折腾，结果就一直连个写 Blog 的地儿都没有。</p>
+<p><strong>部署机：</strong> 代码正常工作所应在的机器。比如如果我们开发一个网站，最终我们要把这个网站的代码部署到公司的服务器上面才能正常上线被访问。那么公司的服务器就是我们的部署机。</p>
 
-<p>在玩了一段时间知乎之后，答题的快感又激起了我开博客的冲动。之前的<a href="http://huangxuan.me/portfolio">个人网站</a>是作品集形式的（现在集成进来了），并不适合用来写博文，一不做二不休，花一天搞一个吧！</p>
+<p><strong>travis Server：</strong> 使用travis会引来第三台机器——travis平台的机器。travis会在我们push代码时自动帮我们测试，部署代码，而这一切都是在travis平台的机器上运行的。换句话说，.travis.yml中所执行的语句，执行环境都是travis机器的沙盒。</p>
 
-<p id="build"></p>
-<hr />
+<h2 id="示例详解">示例详解</h2>
 
-<h2 id="正文">正文</h2>
+<h4 id="1建立travis-ci账号">1.建立travis CI账号</h4>
 
-<p>接下来说说搭建这个博客的技术细节。</p>
+<p>访问<a href="https://travis-ci.org/">travis CI官网</a>，按照提示将travis CI账号与GitHub账号进行绑定，然后勾选需要travis跟踪的GitHub项目。注意这里有可能只能显示private的项目（如果你的GitHub上面没有private的项目那么就显示空白），不过可以通过某个地方设置把所有public的项目也显示出来。</p>
 
-<p>正好之前就有关注过 <a href="https://pages.github.com/">GitHub Pages</a> + <a href="http://jekyllrb.com/">Jekyll</a> 快速 Building Blog 的技术方案，非常轻松时尚。</p>
+<h4 id="2将最原始的travis官方示例clone下来">2.将最原始的travis官方示例clone下来</h4>
 
-<p>其优点非常明显：</p>
+<p>访问<a href="https://github.com/plaindocs/travis-broken-example">travis-broken-example</a>，将它clone到开发机。里面有一个.travis.yml，在travis的网站上面勾上这个项目，那么每次在开发机上push这个项目都会执行travis的流程(详见<a href="https://docs.travis-ci.com/user/customizing-the-build/#The-Build-Lifecycle">The Build Lifecycle</a>)。
+这个broken example会导致build失败，不过将Test.php中的</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>    $this-&gt;assertEquals(1+1,1);
+</code></pre>
+</div>
+<p>改为：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>    $this-&gt;assertEquals(1+1,2);
+</code></pre>
+</div>
+<p>即可通过travis的build。</p>
 
-<ul>
-  <li><strong>Markdown</strong> 带来的优雅写作体验</li>
-  <li>非常熟悉的 Git workflow ，<strong>Git Commit 即 Blog Post</strong></li>
-  <li>利用 GitHub Pages 的域名和免费无限空间，不用自己折腾主机
-    <ul>
-      <li>如果需要自定义域名，也只需要简单改改 DNS 加个 CNAME 就好了</li>
-    </ul>
-  </li>
-  <li>Jekyll 的自定制非常容易，基本就是个模版引擎</li>
-</ul>
+<h4 id="3定义自己的测试脚本">3.定义自己的测试脚本</h4>
 
-<p>本来觉得最大的缺点可能是 GitHub 在国内访问起来太慢，所以第二天一起床就到 GitCafe(Chinese GitHub Copy) 迁移了一个<a href="http://huxpro.gitcafe.io">镜像</a>出来，结果还是巨慢。</p>
+<p>.travis.yml中的 <code class="highlighter-rouge">script:</code> 即是需要跑得测试脚本，多测试脚本可参见文档，凡有一个测试脚本有非0返回值那么就build失败。</p>
 
-<p>哥哥可是个前端好嘛！ 果断开 Chrome DevTool 查了下网络请求，原来是 <strong>pending 在了 Google Fonts</strong> 上，页面渲染一直被阻塞到请求超时为止，难怪这么慢。<br />
-忍痛割爱，只好把 Web Fonts 去了（反正超时看到的也只能是 fallback ），果然一下就正常了，而且 GitHub 和 GitCafe 对比并没有感受到明显的速度差异，虽然 github 的 ping 值明显要高一些，达到了 300ms，于是用 DNSPOD 优化了一下速度。</p>
+<p>本例添加文件 <code class="highlighter-rouge">submodule.php</code> ：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>&lt;?php
+class Module
+{
+    public function test() {
+        return 1;
+    }
+}
+?&gt;
+</code></pre>
+</div>
+<p>并修改Test.php:</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>&lt;?php
+require "submodule.php";
 
-<hr />
+class Test extends PHPUnit_Framework_TestCase
+{
+    public function testOnePlusOne() {
+        $m = new Module();
+        $this-&gt;assertEquals($m-&gt;test(),1);
+    }
+}
 
-<p>配置的过程中也没遇到什么坑，基本就是 Git 的流程，相当顺手</p>
+?&gt;
+</code></pre>
+</div>
+<p>同样可以通过build。</p>
 
-<p>大的 Jekyll 主题上直接 fork 了 Clean Blog（这个主题也相当有名，就不多赘述了。唯一的缺点大概就是没有标签支持，于是我给它补上了。）</p>
+<h4 id="4设置自动部署">4.设置自动部署</h4>
 
-<p>本地调试环境需要 <code class="highlighter-rouge">gem install jekyll</code>，结果 rubygem 的源居然被墙了……后来手动改成了我大淘宝的镜像源才成功</p>
+<p>这是示例中比较麻烦的部分。主要麻烦之处在于ssh、scp等命令需要输入目标机器（部署机）的密码，而travis一切配置都在.travis.yml的脚本中，脚本没办法交互式的输入密码。</p>
 
-<p>Theme 的 CSS 是基于 Bootstrap 定制的，看得不爽的地方直接在 Less 里改就好了（平时更习惯 SCSS 些），<strong>不过其实我一直觉得 Bootstrap 在移动端的体验做得相当一般，比我在淘宝参与的团队 CSS 框架差多了……</strong>所以为了体验，也补了不少 CSS 进去</p>
+<p>travis给出的解决办法是：将私钥直接放在项目里，公钥放在部署机上面，travis在build的时候，可以指派使用项目中的私钥对部署机进行免密码通信。而私钥明文放在项目中是很不安全的，travis提供了方法将私钥加密后放在项目中，在travis build的时候才会解密（也就是说哪怕项目是public的，全世界也只有你和travis后台知道你的私钥）。</p>
 
-<p>最后就进入了耗时反而最长的<strong>做图、写字</strong>阶段，也算是进入了<strong>写博客</strong>的正轨，因为是类似 Hack Day 的方式去搭这个站的，所以折腾折腾着大半夜就过去了。</p>
+<blockquote>
+  <p><strong>公私钥系统规则：</strong> 
+私钥只有自己知道，公钥全世界都知道。私钥加密可以用公钥解密；公钥加密能用私钥解密。公私钥相互配对，但从其中一个求解另一个是个数学难题。</p>
+</blockquote>
 
-<p>第二天考虑中文字体的渲染，fork 了 <a href="http://www.typeisbeautiful.com/">Type is Beautiful</a> 的 <code class="highlighter-rouge">font</code> CSS，调整了字号，适配了 Win 的渣渲染，中英文混排效果好多了。</p>
+<p>所以在这一步骤中，需要做如下事情：</p>
 
-<h2 id="后记">后记</h2>
+<p><strong>(1) 生成一套公私钥</strong></p>
 
-<p>回顾这个博客的诞生，纯粹是出于个人兴趣。在知乎相关问题上回答并获得一定的 star 后，我决定把这个博客主题当作一个小小的开源项目来维护。</p>
+<p>在开发机上，打开项目目录，输入：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>ssh-keygen -f travis
+</code></pre>
+</div>
+<p>会生成两个文件，travis是私钥，travis.pub是公钥。</p>
 
-<p>在经历 v1.0 - v1.5 的蜕变后，这个博客主题愈发完整，不但增加了诸多 UI 层的优化（opinionated）；在代码层面，更加丰富的配置项也使得这个主题拥有了更好的灵活性与可拓展性。而作为一个开源项目，我也积极的为其完善文档与解决 issue。</p>
+<p>在部署机上找到 <code class="highlighter-rouge">~/.ssh/authorized_keys</code> 这个文件。这个文件是用来存别的机器的公钥的，里面每一行（很长的一行）都是一个别的机器的公钥。有了这个东西才代表这个机器曾经输对了密码ssh过你，是你信任的，不用再让他ssh的时候输密码了。将travis.pub添加到<code class="highlighter-rouge">~/.ssh/authorized_keys</code>的末尾。</p>
 
-<p>如果你恰好逛到了这里，希望你也能喜欢这个博客主题。</p>
+<p><strong>(2) 加密私钥</strong></p>
 
-<p>—— Hux 后记于 2015.10</p>
+<p>首先需要一个2.0版本的ruby，可以用<code class="highlighter-rouge">ruby -v</code>查看当前开发机的ruby版本，如果低于2.0，可按照[2]中的步骤来安装一个正确版本的ruby。</p>
+
+<p>接下来，安装travis加密命令：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>gem install travis
+</code></pre>
+</div>
+<p>用GitHub账号进行登录：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>travis login
+</code></pre>
+</div>
+<p>加密私钥文件travis，并自动添加到.travis.yml中。</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>travis encrypt-file travis  --add
+</code></pre>
+</div>
+<p>完成以上步骤后可以发现在<code class="highlighter-rouge">.travis.yml</code>文件中自动添加了几行：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>before_install:
+ - openssl aes-256-cbc -K $encrypted_ebf374d9d5b3_key -iv $encrypted_ebf374d9d5b3_iv -in travis.enc -out ~/.ssh/id_rsa -d
+</code></pre>
+</div>
+
+<p>其中<code class="highlighter-rouge">-in travis.enc</code>代表用加密后的私钥文件（travis.enc是由私钥文件travis加密而来），<code class="highlighter-rouge">-out ~/.ssh/id_rsa -d</code> 代表将加密私钥文件解密后放在<strong>travis server</strong>上的<code class="highlighter-rouge">~/.ssh/id_rsa</code>中。完成这一步，就代表了可以有从travis server到部署机上的免密码通信。接下来所有脚本中的命令无密码执行也就成为了可能。</p>
+
+<p><strong>注意：</strong> 自动生成的这两行可能在<code class="highlighter-rouge">-in</code>和<code class="highlighter-rouge">-out</code>的文件路径上不正确，需要自己调整。前面一大堆是自动生成的，不要照抄。</p>
+
+<p>除此之外，在<code class="highlighter-rouge">before_install</code>中加入另外两行命令：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>before_install:
+ - openssl aes-256-cbc -K $encrypted_ebf374d9d5b3_key -iv $encrypted_ebf374d9d5b3_iv -in travis.enc -out ~/.ssh/id_rsa -d
+ - chmod 600 ~/.ssh/id_rsa
+ - echo -e "Host 111.231.57.187\n\tStrictHostKeyChecking no\n" &gt;&gt; ~/.ssh/config
+</code></pre>
+</div>
+<p>最后一条里面的ip写自己部署机的ip。记得是公网ip，不是192.168开头的那个ip。命令意义是设置免密码ssh。</p>
+
+<p><strong>(3) 设置known_hosts <sup>[1]</sup></strong></p>
+
+<p>因为 travis-ci 默认只添加了 <code class="highlighter-rouge">github.com</code>, <code class="highlighter-rouge">gist.github.com</code> 和 <code class="highlighter-rouge">ssh.github.com</code> 为 known_hosts，rsync 执行时会提示是否添加，但是 travis-ci 里不能输入确认，所以需要将自动服务器的域名和商品添加到 known_hosts，添加如下语句：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>addons:
+  ssh_known_hosts: 111.231.57.187:1223
+</code></pre>
+</div>
+<p>1223代表如果你的ssh默认端口不是22（ssh默认端口在目标机器的 <code class="highlighter-rouge">/etc/ssh/sshd_config</code> 中查看），可以这么写。如果是默认的22端口，只用写域名或者ip。</p>
+
+<p><strong>(4) 设置hooks</strong></p>
+
+<p>添加代码使得在build成功过后能自动部署到部署机上：</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>after_success:
+ - ssh root@111.231.57.187 'cd travis-broken-example &amp;&amp; git pull'
+</code></pre>
+</div>
+
+<p>完整的.travis.yml:</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>language: php
+php:
+- 5.5
+- 5.4
+
+before_install:
+- openssl aes-256-cbc -K $encrypted_ebf374d9d5b3_key -iv $encrypted_ebf374d9d5b3_iv -in travis.enc -out ~/.ssh/id_rsa -d
+- chmod 600 ~/.ssh/id_rsa
+- echo -e "Host 111.231.57.187\n\tStrictHostKeyChecking no\n" &gt;&gt; ~/.ssh/config
+
+addons:
+  ssh_known_hosts: 111.231.57.187
+
+script: phpunit Test.php
+
+after_success:
+ - ssh root@111.231.57.187 'cd travis-broken-example &amp;&amp; git pull'
+</code></pre>
+</div>
+
+<h2 id="使用">使用</h2>
+
+<p>在开发机上开发项目，git commit，git push之后，就会在travis上面自动build，build信息可以点开build jobs在Job Log中查看。如果成功，再查看部署机上的项目目录，发现刚刚push的最新版本的代码已经同步到了部署机上面。</p>
+
+<h2 id="参考资料">参考资料</h2>
+
+<p>[1] <a href="https://uedsky.com/2016-06/travis-deploy/">Hexo 博客 travis-ci 自动部署到VPS</a></p>
+
+<p>[2] <a href="https://juejin.im/entry/5893590a128fe1006545a980">一点都不高大上，手把手教你使用 Travis CI 实现持续部署</a></p>
+
+<p>[3] <a href="https://docs.travis-ci.com/">travis CI User Documents</a></p>
 
 
                 <hr>
@@ -237,10 +343,10 @@
 
                 <ul class="pager">
                     
-                    
-                    <li class="next">
-                        <a href="/2017/09/05/travis/" data-toggle="tooltip" data-placement="top" title="Travis CI 使用指南">Next Post &rarr;</a>
+                    <li class="previous">
+                        <a href="/2015/01/29/hello-2015/" data-toggle="tooltip" data-placement="top" title="Welcome to Hux Blog">&larr; Previous Post</a>
                     </li>
+                    
                     
                 </ul>
 
@@ -249,9 +355,9 @@
                 <!-- 多说评论框 start -->
                 <div class="comment">
                     <div class="ds-thread"
-                        data-thread-key="/2015/01/29/hello-2015"
-                        data-title="Welcome to Hux Blog"
-                        data-url="http://localhost:4000/2015/01/29/hello-2015/" >
+                        data-thread-key="/2017/09/05/travis"
+                        data-title="Travis CI 使用指南"
+                        data-url="http://localhost:4000/2017/09/05/travis/" >
                     </div>
                 </div>
                 <!-- 多说评论框 end -->
@@ -321,8 +427,8 @@
 <script type="text/javascript">
     /* * * CONFIGURATION VARIABLES * * */
     var disqus_shortname = "refone-blog";
-    var disqus_identifier = "/2015/01/29/hello-2015";
-    var disqus_url = "http://localhost:4000/2015/01/29/hello-2015/";
+    var disqus_identifier = "/2017/09/05/travis";
+    var disqus_url = "http://localhost:4000/2017/09/05/travis/";
 
     (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
