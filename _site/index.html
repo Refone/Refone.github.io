@@ -48,6 +48,23 @@
 </head>
 
 
+<!-- MathJax Section -->
+<script type="text/javascript"
+src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+    MathJax.Hub.Config({
+          tex2jax: {
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+          }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
 <!-- hack iOS CSS :active style -->
 <body ontouchstart="">
 
@@ -174,35 +191,30 @@ travis CI是一个代码自动测试与部署的开方平台，与GitHub相关�
 <hr>
 
 <div class="post-preview">
-    <a href="/2015/01/29/hello-2015/">
+    <a href="/2017/09/05/aes/">
         <h2 class="post-title">
-            Welcome to Hux Blog
+            AES 加密解读
         </h2>
         
         <h3 class="post-subtitle">
-             "Hello World, Hello Blog"
+            如果你不满足于黑盒加密算法
         </h3>
         
         <div class="post-content-preview">
             
-  “Yeah It’s on. ”
+  本博文是通过阅读博文[1]，并结合项目[2]所写，图片大部分来自wiki百科。通过一系列概念的补充和一个具体实例的示范加深理解。
 
 
-前言
+准备原料
 
-Hux 的 Blog 就这么开通了。
+这里的原料指的是进行一次最基本的AES加密所需要具备的除源数据以外的东西。本博文暂时讨论128位的AES加密，除128位的AES加密还有192位与256位的AES加密，后文会稍稍提及，不过主要内容讨论的是128位的AES加密。
 
-跳过废话，直接看技术实现 
-
-2015 年，Hux 总算有个地方可以好好写点东西了。
-
-作为一个程序员， Blog 这种轮子要是挂在大众博客程序上就太没意思了。一是觉得大部分 Blog 服务都太丑，二是觉得不能随便定制不好玩。之前因为太懒没有折腾，结果就一直连个写 Blog 的地儿都没有。
-
-在玩了一...
+加密公式：
+...
         </div>
     </a>
     <p class="post-meta">
-        Posted by Hux on January 29, 2015
+        Posted by Refone on September 5, 2017
     </p>
 </div>
 <hr>
@@ -226,6 +238,8 @@ Hux 的 Blog 就这么开通了。
                     <hr class="hidden-sm hidden-xs">
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
+                        
+                            
                         
                             
                         

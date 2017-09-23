@@ -48,6 +48,23 @@
 </head>
 
 
+<!-- MathJax Section -->
+<script type="text/javascript"
+src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+    MathJax.Hub.Config({
+          tex2jax: {
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+          }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
 <!-- hack iOS CSS :active style -->
 <body ontouchstart="">
 
@@ -140,7 +157,9 @@
             <!-- 标签云 -->
 			<div id='tag_cloud' class="tags">
 				
-				<a href="#生活" title="生活" rel="1">生活</a>
+				<a href="#加密" title="加密" rel="1">加密</a>
+				
+				<a href="#安全" title="安全" rel="1">安全</a>
 				
 				<a href="#工具" title="工具" rel="1">工具</a>
 				
@@ -149,26 +168,52 @@
             <!-- 标签列表 -->
 			
 			<div class="one-tag-list">
-			  	<span class="fa fa-tag listing-seperator" id="生活">
-                    <span class="tag-text">生活</span>
+			  	<span class="fa fa-tag listing-seperator" id="加密">
+                    <span class="tag-text">加密</span>
                 </span>
 				
 				  <!-- <li class="listing-item">
-				  <time datetime="2015-01-29">2015-01-29</time>
-				  <a href="/2015/01/29/hello-2015/" title="Welcome to Hux Blog">Welcome to Hux Blog</a>
+				  <time datetime="2017-09-05">2017-09-05</time>
+				  <a href="/2017/09/05/aes/" title="AES 加密解读">AES 加密解读</a>
 				  </li> -->
 				 <div class="post-preview">
-				    <a href="/2015/01/29/hello-2015/">
+				    <a href="/2017/09/05/aes/">
 				        <h2 class="post-title">
-                            Welcome to Hux Blog
+                            AES 加密解读
 				        </h2>
 				        
 				        <h3 class="post-subtitle">
-				             "Hello World, Hello Blog"
+				            如果你不满足于黑盒加密算法
 				        </h3>
 				        
 				    </a>
-				    <!-- <p class="post-meta">2015-01-29</p> -->
+				    <!-- <p class="post-meta">2017-09-05</p> -->
+				</div>
+				<hr>
+				
+			</div>
+			
+			<div class="one-tag-list">
+			  	<span class="fa fa-tag listing-seperator" id="安全">
+                    <span class="tag-text">安全</span>
+                </span>
+				
+				  <!-- <li class="listing-item">
+				  <time datetime="2017-09-05">2017-09-05</time>
+				  <a href="/2017/09/05/aes/" title="AES 加密解读">AES 加密解读</a>
+				  </li> -->
+				 <div class="post-preview">
+				    <a href="/2017/09/05/aes/">
+				        <h2 class="post-title">
+                            AES 加密解读
+				        </h2>
+				        
+				        <h3 class="post-subtitle">
+				            如果你不满足于黑盒加密算法
+				        </h3>
+				        
+				    </a>
+				    <!-- <p class="post-meta">2017-09-05</p> -->
 				</div>
 				<hr>
 				

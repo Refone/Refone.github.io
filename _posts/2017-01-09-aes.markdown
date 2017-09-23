@@ -1,0 +1,416 @@
+---
+layout:     post
+title:      "AES 加密解读"
+subtitle:   "如果你不满足于黑盒加密算法"
+date:       2017-09-05 12:00:00
+author:     "Refone"
+header-img: "img/aes-bg.jpg"
+tags:
+    - 加密
+    - 安全
+---
+
+
+> 本博文是通过阅读博文[[1]](http://www.mamicode.com/info-detail-514466.html)，并结合项目[[2]](https://github.com/dhuertas/AES)所写，图片大部分来自wiki百科。通过一系列概念的补充和一个具体实例的示范加深理解。
+
+# 准备原料
+
+这里的原料指的是进行一次最基本的AES加密所需要具备的除源数据以外的东西。本博文暂时讨论128位的AES加密，除128位的AES加密还有192位与256位的AES加密，后文会稍稍提及，不过主要内容讨论的是128位的AES加密。
+
+**加密公式：**
+
+```
+key(4×4×8bit) + 原文(4×4×8bit) = 密文(4×4×8bit)   //（4×4×8=128)
+```
+
+这是AES加密的最小单位。对应的AES192和AES256基本长度就是4×4×12和4×4×16.
+
+**1.密钥**
+
+如上公式所描述，我们需要一个128位的密钥，也就是用户设定的key。
+
+**2.转化表**
+
+<div align="center"><img src="img/in-post/aes/S-box.png"></div> 
+<div align="center"><img src="img/in-post/aes/Inverse_S-box.png"></div>
+
+假设字节0x00经由转化表S-box就得S(0x00) = S[0][0] = 0x63.
+
+同理，逆向过程为S<sup>-1</sup>(0x63) = S<sup>-1</sup>[6][3] = 0x00.
+
+**3.回合金钥(Round Key)**
+
+中文wiki百科把subRoundkey翻译为回合金钥。回合金钥与轮数有关，AES中128位元密钥有10个加密轮回，192位元有12个加密轮回，256位元有14个加密轮回，而每一个加密轮回需要用到一个回合金钥，也就是有多少个加密轮回就需要多少回合金钥，**每一轮回的回合金钥长度与key相同**。所有的回合金钥由密钥(key)扩展得到。回合金钥的制作过程如图所示：
+
+<div align="center"><img src="img/in-post/aes/gen-round-key.png" width="400" height="400"></div>
+
+密钥扩展过程说明：
+
+&emsp;&emsp;1)  将初始密钥以列为主，转化为4个32 bits的字，分别记为$w[0…3]$；
+
+&emsp;&emsp;2)  按照如下方式，依次求解$w[j]$，其中$j$是整数并且属于$[4,43]$；
+
+&emsp;&emsp;3)  若$j\%4=0$,则 $w[j]=w[j-4] \bigoplus g(w[j-1])$ ,否则 $w[j]=w[j-4]\bigoplus w[j-1]$；
+
+　　函数g的流程说明：
+
+&emsp;&emsp;4)  将$w$循环左移一个字节；
+
+&emsp;&emsp;5)  分别对每个字节按S盒进行映射；
+
+&emsp;&emsp;6)  与32 bits的常量$(RC[j/4],0,0,0)$进行异或，$RC$是一个一维数组，其值如下。（$RC$的值只需要有10个，而此处用了11个，实际上$RC[0]$在运算中没有用到，增加$RC[0]$是为了便于程序中用数组表示。由于$j$的最小取值是4，$j/4$的最小取值则是1，因此不会产生错误。）
+
+　　　　　<div align="center">　$RC = {00, 01, 02, 04, 08, 10, 20, 40, 80, 1B, 36}$ </div>
+
+项目中生成回合金钥的代码片段有两个参数需要解释：
+
+**Nk**：key是32-bit的多少倍，128位元的Nk=4（如上图有灰橙绿蓝四列）。
+
+**Nr**：加密轮回，128位元本例采用的Nr=10。
+
+用代码表示回合金钥expansion流程如下：
+```c
+/*
+ * Key Expansion
+ */
+void key_expansion(uint8_t *key, uint8_t *w) {
+    
+    uint8_t tmp[4];
+    uint8_t i;
+    uint8_t len = Nb*(Nr+1);
+    
+    for (i = 0; i < Nk; i++) {
+        w[4*i+0] = key[4*i+0];
+        w[4*i+1] = key[4*i+1];
+        w[4*i+2] = key[4*i+2];
+        w[4*i+3] = key[4*i+3];
+    }
+    
+    for (i = Nk; i < len; i++) {
+        tmp[0] = w[4*(i-1)+0];
+        tmp[1] = w[4*(i-1)+1];
+        tmp[2] = w[4*(i-1)+2];
+        tmp[3] = w[4*(i-1)+3];
+        
+        if (i%Nk == 0) {
+            
+            rot_word(tmp);
+            sub_word(tmp);
+            coef_add(tmp, Rcon(i/Nk), tmp);
+            
+        }
+        
+        w[4*i+0] = w[4*(i-Nk)+0]^tmp[0];
+        w[4*i+1] = w[4*(i-Nk)+1]^tmp[1];
+        w[4*i+2] = w[4*(i-Nk)+2]^tmp[2];
+        w[4*i+3] = w[4*(i-Nk)+3]^tmp[3];
+    }
+}
+```
+
+当初始```key = {00,01,02,03,  04,05,06,07,  08,09,0a,0b,  0c,0d,0e,0f}```时，轮回金钥制作结果如下：
+
+```
+00010203 04050607 08090a0b 0c0d0e0f //w[0~15] w[(0~3)*Nk + (0~3)]
+d6aa74fd d2af72fa daa678f1 d6ab76fe //w[16~31] w[(4~7)*Nk + (0~3)]
+b692cf0b 643dbdf1 be9bc500 6830b3fe
+b6ff744e d2c2c9bf 6c590cbf 0469bf41
+47f7f7bc 95353e03 f96c32bc fd058dfd
+3caaa3e8 a99f9deb 50f3af57 adf622aa
+5e390f7d f7a69296 a7553dc1 0aa31f6b
+14f9701a e35fe28c 440adf4d 4ea9c026
+47438735 a41c65b9 e016baf4 aebf7ad2
+549932d1 f0855768 1093ed9c be2c974e
+13111d7f e3944a17 f307a78b 4d2b30c5
+```
+
+# 轮回过程
+每一轮有四个过程：字节替代(subBytes)，行移位(shiftRows)，列混淆(mixColumns)，轮回金钥加密(addRoundKey)。第一轮之前首先进行一次addRoundKey，最后一轮不用addRoundKey。用代码理解就是：
+```c
+for (i = 0; i < 4; i++) {
+        for (j = 0; j < Nb; j++) {
+            state[Nb*i+j] = in[i+4*j];
+        }
+    }
+    
+    add_round_key(state, w, Nr);
+    
+    for (r = Nr-1; r >= 1; r--) {
+        inv_shift_rows(state);
+        inv_sub_bytes(state);
+        add_round_key(state, w, r);
+        inv_mix_columns(state);
+    }
+    
+    inv_shift_rows(state);
+    inv_sub_bytes(state);
+    add_round_key(state, w, 0);
+```
+state为每轮加密完成后的状态，最开始state为输入明文in[]。接下来阐述每一个过程：
+
+## 字节替代 (The SubBytes step)
+
+就是根据S-box转换表转换，上面已经提到了转换方法。
+
+## 行移位 (The ShiftRows step)
+
+如图矩阵中一个方块代表一个state字节(8-bit)，实际移位的操作即是：第一行保存不变，第二行循环左移1个字节，第三行循环左移2个字节，第四行循环左移3个字节。
+
+<div align="center"><img src="img/in-post/aes/shiftrows.png" width=400></div>
+
+## 列混淆 (The MixColumns step)
+
+简单来讲就是state矩阵左乘一个固定矩阵$A$
+
+<div align="center"><img src="img/in-post/aes/mixcolumns.png" width=400></div>
+
+为何是矩阵$A$ = {02,01,01,03},{03,02,01,01},{01,03,02,01},{01,01,03,02}，暂时不明白，AES标准的意思是这个矩阵是固定的，不过按加密思路来说是可以的，只要保证解密的时候用的矩阵和该矩阵互逆即可($A\cdot A^{-1}= I$, $I$为单位矩阵)。
+
+列混淆官方一点说法是，每一列都在modulo $x^4+1$ 之下，与固定多项式$c(x)=3x^{3}+x^{2}+x+2$按有限域算法相乘（有限域乘法后面专门有部分讲述），[\[2\]][2]中代码也是这样表示的：
+```c
+void mix_columns(uint8_t *state) {
+    
+    uint8_t a[] = {0x02, 0x01, 0x01, 0x03}; // a(x) = {02} + {01}x + {01}x2 + {03}x3
+    uint8_t i, j, col[4], res[4];
+    
+    for (j = 0; j < Nb; j++) {
+        for (i = 0; i < 4; i++) {
+            col[i] = state[Nb*i+j];
+        }
+        
+        coef_mult(a, col, res);
+        
+        for (i = 0; i < 4; i++) {
+            state[Nb*i+j] = res[i];
+        }
+    }
+}
+```
+
+coef_mult实现的是$\{a_0a_1a_2a_3\} \cdot \{b_0b_1b_2b_3\}$在$RP$=10001时的有限域乘法。代码如下：
+
+```c
+/*
+ * Multiplication of 4 byte words
+ * m(x) = x4+1
+ */
+void coef_mult(uint8_t *a, uint8_t *b, uint8_t *d) {
+    
+    d[0] = gmult(a[0],b[0])^gmult(a[3],b[1])^gmult(a[2],b[2])^gmult(a[1],b[3]);
+    d[1] = gmult(a[1],b[0])^gmult(a[0],b[1])^gmult(a[3],b[2])^gmult(a[2],b[3]);
+    d[2] = gmult(a[2],b[0])^gmult(a[1],b[1])^gmult(a[0],b[2])^gmult(a[3],b[3]);
+    d[3] = gmult(a[3],b[0])^gmult(a[2],b[1])^gmult(a[1],b[2])^gmult(a[0],b[3]);
+}
+```
+
+不过最终两种版本的解释殊途同归，都做了一样的事，有一样的结果——将state左乘了矩阵$A$。
+
+## 轮回金钥加密（The AddRoundKey step）
+每一轮state有16个byte，正好每一轮的轮回金钥也有16个byte，将他们对应异或就可实现该步骤。即：
+
+$state[i][j]' = state[i][j] \bigoplus w[r*Nk + i*4 + j]$
+
+也就是
+
+$state = state \bigoplus w[r*Nk + (0..15)]$
+
+<br>
+笔记末尾有一个加密实例。至于为什么要进行这么复杂的步骤，貌似跟密码学有关系，满足扩散性非线性什么的，这里就没有深究下去了，认怂。
+
+关于AES的一切加密都是可逆的，只要掌握key，可以由密文推导出原文。笔记不再累述，[\[2\]][2]中有相应呈现。
+
+# 有限域算法<sup>[\[3\]][3]</sup>
+
+## 有限域加法
+有限域加法采用异或法则
+
+|$p_1$|$p_2$|$p_1+p_2$$(normal$ $algebra)$|$p_1+p_2$ in $GF(2^2)$|
+|:---|:---|:---|:---|
+|$x^3+x+1$|$x^3+x^2$|$2x^3+x^2+x+1$|$x^2+x+1$|
+|$x^4+x^2$|$x^6+x^2$|$x^6+x^4+2x^2$|$x^6+x^4$|
+|$x+1$|$x^2+1$|$x^2+x+2$|$x^2+x$|
+|$x^3+x$|$x^2+1$|$x^3+x^2+x+1$|$x^3+x^2+x+1$|
+|$x^2+x$|$x^2+x$|$2x^2+2x$|$0$|
+
+上表中的5个例子前三个用二进制算式表示即为：
+
+$1011_2 + 1100_2 = 0111_2$
+
+$10100_2 + 1000100_2 = 1010000_2$
+
+$11_2 + 101_2 = 110_2$
+
+## 有限域乘法
+
+例如${7_{16}} \cdot {11_{16}} = 0111_{2} \cdot 1011_{2} =   110001_{2} = 49_{16}$ （注意加法部分仍是异或方式）
+
+```
+    111 ×
+   1011 =
+   ------
+    111 +
+   1110 +
+ 111000 =
+ --------
+ 110001
+ ```
+
+不过当位数大于等于7位时，需要一个<font color="blue" style="font-weight:bold">reduce it modulo the reduction polynomial</font>过程，即乘法结果除一个数（<font color="blue" style="font-weight:bold">reducing polynomial</font>，暂时称其为RP），余数才是最终结果，RP怎么来的目前不清楚，估计跟位数有关系，不过但凡牵扯到乘法都会给出（[\[2\]][2]中代码里也会有注释）。
+
+wiki中的例子：
+
+给出$RP = x^8 + x^4 + x^3 + x + 1$. （$100011011_2$）
+
+$53_{16} \cdot CA_{16} = 01_{16}$
+
+$01010011_2 \cdot 11001010_2 = 11111101111110_2$
+
+然后 $11111101111110_2 \ mod \ 100011011_2$
+
+```
+         ----------------      
+          11111101111110  (mod) 100011011
+          100011011
+          ---------------     
+           1110000011110
+           100011011
+           --------------
+            110110101110
+            100011011
+            -------------   
+             10101110110
+             100011011
+             ------------  
+              0100011010
+               100011011
+               ---------- 
+                00000001
+```
+
+所以最后结果为$01_2$.
+
+# AES加密实例
+
+1. 我们给出**key**:
+
+```c
+    /* 128 bit key */
+     uint8_t key[] = {
+     0x00, 0x01, 0x02, 0x03, 
+     0x04, 0x05, 0x06, 0x07, 
+     0x08, 0x09, 0x0a, 0x0b, 
+     0x0c, 0x0d, 0x0e, 0x0f};
+```
+
+2. 给出**原文**:
+
+```c
+    uint8_t in[] = {
+    0x00, 0x11, 0x22, 0x33,
+    0x44, 0x55, 0x66, 0x77,
+    0x88, 0x99, 0xaa, 0xbb,
+    0xcc, 0xdd, 0xee, 0xff};
+```
+
+3. **转换表**和**逆转换表**(S-box，Inverse S-box)采用【准备原料】小节中给出的那张表
+
+4. **轮回金钥**由key推导出如下：
+
+```c
+00010203 04050607 08090a0b 0c0d0e0f    //w[0~15] w[(0~3)*Nk + (0~3)]
+d6aa74fd d2af72fa daa678f1 d6ab76fe    //w[16~31] w[(4~7)*Nk + (0~3)]
+b692cf0b 643dbdf1 be9bc500 6830b3fe
+b6ff744e d2c2c9bf 6c590cbf 0469bf41
+47f7f7bc 95353e03 f96c32bc fd058dfd
+3caaa3e8 a99f9deb 50f3af57 adf622aa
+5e390f7d f7a69296 a7553dc1 0aa31f6b
+14f9701a e35fe28c 440adf4d 4ea9c026
+47438735 a41c65b9 e016baf4 aebf7ad2
+549932d1 f0855768 1093ed9c be2c974e
+13111d7f e3944a17 f307a78b 4d2b30c5
+```
+
+轮回加密过程图如下：
+
+<div align="center"><img src="img/in-post/aes/encryption_round.png" width=400></div>
+
+前五个步骤① ~ ⑤的状态如下：
+
+```c
+[1]初始addRoundKey(轮回金钥加密):
+00 40 80 c0
+10 50 90 d0
+20 60 a0 e0
+30 70 b0 f0
+[2]第1轮subBytes(字节替换):
+63 09 cd ba
+ca 53 60 70
+b7 d0 e0 e1
+04 51 e7 8c
+[3]第1轮shiftRows(行移位):
+63 09 cd ba
+53 60 70 ca
+e0 e1 b7 d0
+8c 04 51 e7
+[4]第1轮mixColums(列混淆):
+5f 57 f7 1d
+72 f5 be b9
+64 bc 3b f9
+15 92 29 1a
+[5]第1轮addRoundKey(轮回金钥加密):
+89 85 2d cb
+d8 5a 18 12
+10 ce 43 8f
+e8 68 d8 e4
+```
+
+# AES加密模式<sup>[\[5\]][5]</sup>
+
+以上说明的是AES单位粒度的加密流程，以128位AES加密来说，上面的流程完成了16byte(128bit)明文到16byte(128bit)密文的转换。对于更长的用户数据，大到几个GB的数据，以AES的标准又该如何去加密呢？这里常用的有三种加密方式(ECB，CBC，CTR)
+
+## ECB(Electronic Codebook Book) ——电码本模式
+
+这种加密模式就是最简单粗暴的将数据切分成若干个128bit，然后对每一个128bit进行单位粒度的AES加密。每一个128bit的区块可以单独拿出来加密或者解密，不影响其他区块，正因如此，加密解密均可并行。但安全性较差，攻击者不难列出128bit所有明文到密文的映射表，然后通过查表的方式就可以从密文知道对应明文。（添加随机的salt是对这种列表攻击比较好的防御）
+
+<div align="center"><img src="img/in-post/aes/ecb.png" width=400></div>
+
+## CBC(Cipher Block Chaining) ——密码分组链接
+
+这种模式是先将明文切分成若干小段，然后每一小段与初始块或者上一段的密文段进行异或运算后，再与密钥进行加密。
+
+若第一个块的下标为1，则CBC模式的加密过程为
+
+$C_{i}=E_{K}(P_{i}\oplus C_{{i-1}}),C_{0}=IV$ 
+
+而其解密过程则为
+
+$P_{i}=D_{K}(C_{i})\oplus C_{{i-1}},C_{0}=IV$
+
+这里$IV$是初始向量，与加密单位长度相同。加密过程是串行的，无法被并行化，而且消息必须被填充到块大小的整数倍。在解密时，从两个邻接的密文块中即可得到一个平文块。因此，解密过程可以被并行化
+
+<div align="center"><img src="img/in-post/aes/cbc.png" width=400></div>
+
+## CTR(Counter mode) ——计数器模式
+
+如图中所示，CTR也会有一个初始向量$IV$，同时，他还会有一个nonce和counter。nonce由用户指定，用以防御ECB中介绍的“列表攻击”，counter为自增算子，也可以说是数据区块索引。CTR将nonce与counter组合成的数据用key加密，生成的结果再与数据明文异或，得到该区块密文。
+CTR不但可以并行加解密，而且不同于CBC，可以在解密时进行随机存取。由于加密和解密过程均可以进行并行处理，CTR很适合运行在多处理器的硬件上。
+
+<div align="center"><img src="img/in-post/aes/ctr.png" width=400></div>
+
+# 参考资料
+
+\[1\] [密码算法详解——AES][1]
+
+\[2\] [AES项目][2]
+
+\[3\] [Finite field arithmetic][3]
+
+\[4\] [高级加密标准wikipedia][4]
+
+\[5\] [分组密码工作模式][5]
+
+[1]: http://www.mamicode.com/info-detail-514466.html
+[2]: https://github.com/dhuertas/AES 
+[3]: https://en.wikipedia.org/wiki/Finite_field_arithmetic
+[4]:  https://zh.wikipedia.org/wiki/%E9%AB%98%E7%BA%A7%E5%8A%A0%E5%AF%86%E6%A0%87%E5%87%86
+[5]: https://zh.wikipedia.org/wiki/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E5%B7%A5%E4%BD%9C%E6%A8%A1%E5%BC%8F
