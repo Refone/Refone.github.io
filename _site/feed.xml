@@ -5,8 +5,8 @@
     <description></description>
     <link>http://localhost:4000/</link>
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Sat, 23 Sep 2017 20:54:56 +0800</pubDate>
-    <lastBuildDate>Sat, 23 Sep 2017 20:54:56 +0800</lastBuildDate>
+    <pubDate>Sun, 24 Sep 2017 13:05:33 +0800</pubDate>
+    <lastBuildDate>Sun, 24 Sep 2017 13:05:33 +0800</lastBuildDate>
     <generator>Jekyll v3.5.2</generator>
     
       <item>
@@ -209,7 +209,7 @@ after_success:
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;这是AES加密的最小单位。对应的AES192和AES256基本长度就是4×4×12和4×4×16.&lt;/p&gt;
+&lt;p&gt;这是AES加密的最小单位。对应的AES192和AES256基本长度就是4×4×12和4×4×16.&lt;/p&gt;
 
 &lt;p&gt;&lt;strong&gt;1.密钥&lt;/strong&gt;&lt;/p&gt;
 
@@ -217,8 +217,8 @@ after_success:
 
 &lt;p&gt;&lt;strong&gt;2.转化表&lt;/strong&gt;&lt;/p&gt;
 
-&lt;div align=&quot;center&quot;&gt;&lt;img src=&quot;img/in-post/aes/S-box.png&quot; /&gt;&lt;/div&gt;
-&lt;div align=&quot;center&quot;&gt;&lt;img src=&quot;img/in-post/aes/Inverse_S-box.png&quot; /&gt;&lt;/div&gt;
+&lt;div align=&quot;center&quot;&gt;&lt;img src=&quot;/img/in-post/aes/S-box.png&quot; /&gt;&lt;/div&gt;
+&lt;div align=&quot;center&quot;&gt;&lt;img src=&quot;/img/in-post/aes/Inverse_S-box.png&quot; /&gt;&lt;/div&gt;
 
 &lt;p&gt;假设字节0x00经由转化表S-box就得S(0x00) = S[0][0] = 0x63.&lt;/p&gt;
 
@@ -228,25 +228,25 @@ after_success:
 
 &lt;p&gt;中文wiki百科把subRoundkey翻译为回合金钥。回合金钥与轮数有关，AES中128位元密钥有10个加密轮回，192位元有12个加密轮回，256位元有14个加密轮回，而每一个加密轮回需要用到一个回合金钥，也就是有多少个加密轮回就需要多少回合金钥，&lt;strong&gt;每一轮回的回合金钥长度与key相同&lt;/strong&gt;。所有的回合金钥由密钥(key)扩展得到。回合金钥的制作过程如图所示：&lt;/p&gt;
 
-&lt;div align=&quot;center&quot;&gt;&lt;img src=&quot;img/in-post/aes/gen-round-key.png&quot; width=&quot;400&quot; height=&quot;400&quot; /&gt;&lt;/div&gt;
+&lt;div align=&quot;center&quot;&gt;&lt;img src=&quot;/img/in-post/aes/gen-round-key.png&quot; width=&quot;400&quot; height=&quot;400&quot; /&gt;&lt;/div&gt;
 
 &lt;p&gt;密钥扩展过程说明：&lt;/p&gt;
 
-&lt;p&gt;  1)  将初始密钥以列为主，转化为4个32 bits的字，分别记为$w[0…3]$；&lt;/p&gt;
+&lt;p&gt;  1)  将初始密钥以列为主，转化为4个32 bits的字，分别记为&lt;script type=&quot;math/tex&quot;&gt;w[0…3]&lt;/script&gt;；&lt;/p&gt;
 
-&lt;p&gt;  2)  按照如下方式，依次求解$w[j]$，其中$j$是整数并且属于$[4,43]$；&lt;/p&gt;
+&lt;p&gt;  2)  按照如下方式，依次求解&lt;script type=&quot;math/tex&quot;&gt;w[j]&lt;/script&gt;，其中&lt;script type=&quot;math/tex&quot;&gt;j&lt;/script&gt;是整数并且属于&lt;script type=&quot;math/tex&quot;&gt;[4,43]&lt;/script&gt;；&lt;/p&gt;
 
-&lt;p&gt;  3)  若$j\%4=0$,则 $w[j]=w[j-4] \bigoplus g(w[j-1])$ ,否则 $w[j]=w[j-4]\bigoplus w[j-1]$；&lt;/p&gt;
+&lt;p&gt;  3)  若&lt;script type=&quot;math/tex&quot;&gt;j\%4=0&lt;/script&gt;,则 &lt;script type=&quot;math/tex&quot;&gt;w[j]=w[j-4] \bigoplus g(w[j-1])&lt;/script&gt; ,否则 &lt;script type=&quot;math/tex&quot;&gt;w[j]=w[j-4]\bigoplus w[j-1]&lt;/script&gt;；&lt;/p&gt;
 
 &lt;p&gt;　　函数g的流程说明：&lt;/p&gt;
 
-&lt;p&gt;  4)  将$w$循环左移一个字节；&lt;/p&gt;
+&lt;p&gt;  4)  将&lt;script type=&quot;math/tex&quot;&gt;w&lt;/script&gt;循环左移一个字节；&lt;/p&gt;
 
 &lt;p&gt;  5)  分别对每个字节按S盒进行映射；&lt;/p&gt;
 
-&lt;p&gt;  6)  与32 bits的常量$(RC[j/4],0,0,0)$进行异或，$RC$是一个一维数组，其值如下。（$RC$的值只需要有10个，而此处用了11个，实际上$RC[0]$在运算中没有用到，增加$RC[0]$是为了便于程序中用数组表示。由于$j$的最小取值是4，$j/4$的最小取值则是1，因此不会产生错误。）&lt;/p&gt;
+&lt;p&gt;  6)  与32 bits的常量&lt;script type=&quot;math/tex&quot;&gt;(RC[j/4],0,0,0)&lt;/script&gt;进行异或，&lt;script type=&quot;math/tex&quot;&gt;RC&lt;/script&gt;是一个一维数组，其值如下。（&lt;script type=&quot;math/tex&quot;&gt;RC&lt;/script&gt;的值只需要有10个，而此处用了11个，实际上&lt;script type=&quot;math/tex&quot;&gt;RC[0]&lt;/script&gt;在运算中没有用到，增加&lt;script type=&quot;math/tex&quot;&gt;RC[0]&lt;/script&gt;是为了便于程序中用数组表示。由于&lt;script type=&quot;math/tex&quot;&gt;j&lt;/script&gt;的最小取值是4，&lt;script type=&quot;math/tex&quot;&gt;j/4&lt;/script&gt;的最小取值则是1，因此不会产生错误。）&lt;/p&gt;
 
-&lt;p&gt;　　　　　&amp;lt;div align=&quot;center&quot;&amp;gt;　$RC = {00, 01, 02, 04, 08, 10, 20, 40, 80, 1B, 36}$ &amp;lt;/div&amp;gt;&lt;/p&gt;
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;RC = {00, 01, 02, 04, 08, 10, 20, 40, 80, 1B, 36}&lt;/script&gt;
 
 &lt;p&gt;项目中生成回合金钥的代码片段有两个参数需要解释：&lt;/p&gt;
 
@@ -254,7 +254,7 @@ after_success:
 
 &lt;p&gt;&lt;strong&gt;Nr&lt;/strong&gt;：加密轮回，128位元本例采用的Nr=10。&lt;/p&gt;
 
-&lt;p&gt;用代码表示回合金钥expansion流程如下：&lt;/p&gt;
+&lt;p&gt;用代码表示回合金钥expansion流程如下：&lt;/p&gt;
 &lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cm&quot;&gt;/*
  * Key Expansion
  */&lt;/span&gt;
@@ -340,19 +340,19 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 
 &lt;h2 id=&quot;行移位-the-shiftrows-step&quot;&gt;行移位 (The ShiftRows step)&lt;/h2&gt;
 
-&lt;p&gt;如图矩阵中一个方块代表一个state字节(8-bit)，实际移位的操作即是：第一行保存不变，第二行循环左移1个字节，第三行循环左移2个字节，第四行循环左移3个字节。&lt;/p&gt;
+&lt;p&gt;如图矩阵中一个方块代表一个state字节(8-bit)，实际移位的操作即是：第一行保存不变，第二行循环左移1个字节，第三行循环左移2个字节，第四行循环左移3个字节&lt;/p&gt;
 
-&lt;div align=&quot;center&quot;&gt;&amp;lt;img src=&quot;img/in-post/aes/shiftrows.png&quot; width=400&amp;gt;&lt;/div&gt;
+&lt;p&gt;&lt;img src=&quot;/img/in-post/aes/shiftrows.png&quot; width=&quot;400&quot; /&gt;&lt;/p&gt;
 
 &lt;h2 id=&quot;列混淆-the-mixcolumns-step&quot;&gt;列混淆 (The MixColumns step)&lt;/h2&gt;
 
-&lt;p&gt;简单来讲就是state矩阵左乘一个固定矩阵$A$&lt;/p&gt;
+&lt;p&gt;简单来讲就是state矩阵左乘一个固定矩阵&lt;script type=&quot;math/tex&quot;&gt;A&lt;/script&gt;&lt;/p&gt;
 
-&lt;div align=&quot;center&quot;&gt;&amp;lt;img src=&quot;img/in-post/aes/mixcolumns.png&quot; width=400&amp;gt;&lt;/div&gt;
+&lt;p&gt;&lt;img src=&quot;/img/in-post/aes/mixcolumns.png&quot; width=&quot;400&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;为何是矩阵$A$ = {02,01,01,03},{03,02,01,01},{01,03,02,01},{01,01,03,02}，暂时不明白，AES标准的意思是这个矩阵是固定的，不过按加密思路来说是可以的，只要保证解密的时候用的矩阵和该矩阵互逆即可($A\cdot A^{-1}= I$, $I$为单位矩阵)。&lt;/p&gt;
+&lt;p&gt;为何是矩阵&lt;script type=&quot;math/tex&quot;&gt;A&lt;/script&gt; = {02,01,01,03},{03,02,01,01},{01,03,02,01},{01,01,03,02}，暂时不明白，AES标准的意思是这个矩阵是固定的，不过按加密思路来说是可以的，只要保证解密的时候用的矩阵和该矩阵互逆即可(&lt;script type=&quot;math/tex&quot;&gt;A\cdot A^{-1}= I&lt;/script&gt;, &lt;script type=&quot;math/tex&quot;&gt;I&lt;/script&gt;为单位矩阵)。&lt;/p&gt;
 
-&lt;p&gt;列混淆官方一点说法是，每一列都在modulo $x^4+1$ 之下，与固定多项式$c(x)=3x^{3}+x^{2}+x+2$按有限域算法相乘（有限域乘法后面专门有部分讲述），&lt;a href=&quot;https://github.com/dhuertas/AES&quot;&gt;[2]&lt;/a&gt;中代码也是这样表示的：&lt;/p&gt;
+&lt;p&gt;列混淆官方一点说法是，每一列都在modulo &lt;script type=&quot;math/tex&quot;&gt;x^4+1&lt;/script&gt; 之下，与固定多项式&lt;script type=&quot;math/tex&quot;&gt;c(x)=3x^{3}+x^{2}+x+2&lt;/script&gt;按有限域算法相乘（有限域乘法后面专门有部分讲述），&lt;a href=&quot;https://github.com/dhuertas/AES&quot;&gt;[2]&lt;/a&gt;中代码也是这样表示的：&lt;/p&gt;
 &lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;mix_columns&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;uint8_t&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
     
     &lt;span class=&quot;kt&quot;&gt;uint8_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x02&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x01&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x01&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x03&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// a(x) = {02} + {01}x + {01}x2 + {03}x3
@@ -373,7 +373,7 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;coef_mult实现的是${a_0a_1a_2a_3} \cdot {b_0b_1b_2b_3}$在$RP$=10001时的有限域乘法。代码如下：&lt;/p&gt;
+&lt;p&gt;coef_mult实现的是&lt;script type=&quot;math/tex&quot;&gt;\{a_0a_1a_2a_3\} \cdot \{b_0b_1b_2b_3\}&lt;/script&gt;在&lt;script type=&quot;math/tex&quot;&gt;RP&lt;/script&gt;=10001时的有限域乘法。代码如下：&lt;/p&gt;
 
 &lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cm&quot;&gt;/*
  * Multiplication of 4 byte words
@@ -389,16 +389,16 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;不过最终两种版本的解释殊途同归，都做了一样的事，有一样的结果——将state左乘了矩阵$A$。&lt;/p&gt;
+&lt;p&gt;不过最终两种版本的解释殊途同归，都做了一样的事，有一样的结果——将state左乘了矩阵&lt;script type=&quot;math/tex&quot;&gt;A&lt;/script&gt;。&lt;/p&gt;
 
 &lt;h2 id=&quot;轮回金钥加密the-addroundkey-step&quot;&gt;轮回金钥加密（The AddRoundKey step）&lt;/h2&gt;
 &lt;p&gt;每一轮state有16个byte，正好每一轮的轮回金钥也有16个byte，将他们对应异或就可实现该步骤。即：&lt;/p&gt;
 
-&lt;p&gt;$state[i][j]’ = state[i][j] \bigoplus w[r&lt;em&gt;Nk + i&lt;/em&gt;4 + j]$&lt;/p&gt;
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;state[i][j]' = state[i][j] \bigoplus w[r \ast Nk + i \ast 4 + j]&lt;/script&gt;
 
 &lt;p&gt;也就是&lt;/p&gt;
 
-&lt;p&gt;$state = state \bigoplus w[r*Nk + (0..15)]$&lt;/p&gt;
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;state = state \bigoplus w[r \ast Nk + (0..15)]&lt;/script&gt;
 
 &lt;p&gt;&lt;br /&gt;
 笔记末尾有一个加密实例。至于为什么要进行这么复杂的步骤，貌似跟密码学有关系，满足扩散性非线性什么的，这里就没有深究下去了，认怂。&lt;/p&gt;
@@ -413,57 +413,57 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 &lt;table&gt;
   &lt;thead&gt;
     &lt;tr&gt;
-      &lt;th style=&quot;text-align: left&quot;&gt;$p_1$&lt;/th&gt;
-      &lt;th style=&quot;text-align: left&quot;&gt;$p_2$&lt;/th&gt;
-      &lt;th style=&quot;text-align: left&quot;&gt;$p_1+p_2$$(normal$ $algebra)$&lt;/th&gt;
-      &lt;th style=&quot;text-align: left&quot;&gt;$p_1+p_2$ in $GF(2^2)$&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;p_1&lt;/script&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;p_2&lt;/script&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;p_1+p_2&lt;/script&gt;&lt;script type=&quot;math/tex&quot;&gt;(normal&lt;/script&gt; &lt;script type=&quot;math/tex&quot;&gt;algebra)&lt;/script&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;p_1+p_2&lt;/script&gt; in &lt;script type=&quot;math/tex&quot;&gt;GF(2^2)&lt;/script&gt;&lt;/th&gt;
     &lt;/tr&gt;
   &lt;/thead&gt;
   &lt;tbody&gt;
     &lt;tr&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;$x^3+x+1$&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;$x^3+x^2$&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;$2x^3+x^2+x+1$&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;$x^2+x+1$&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;x^3+x+1&lt;/script&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;x^3+x^2&lt;/script&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;2x^3+x^2+x+1&lt;/script&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;x^2+x+1&lt;/script&gt;&lt;/td&gt;
     &lt;/tr&gt;
     &lt;tr&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;$x^4+x^2$&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;$x^6+x^2$&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;$x^6+x^4+2x^2$&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;$x^6+x^4$&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;x^4+x^2&lt;/script&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;x^6+x^2&lt;/script&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;x^6+x^4+2x^2&lt;/script&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;x^6+x^4&lt;/script&gt;&lt;/td&gt;
     &lt;/tr&gt;
     &lt;tr&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;$x+1$&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;$x^2+1$&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;$x^2+x+2$&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;$x^2+x$&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;x+1&lt;/script&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;x^2+1&lt;/script&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;x^2+x+2&lt;/script&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;x^2+x&lt;/script&gt;&lt;/td&gt;
     &lt;/tr&gt;
     &lt;tr&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;$x^3+x$&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;$x^2+1$&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;$x^3+x^2+x+1$&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;$x^3+x^2+x+1$&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;x^3+x&lt;/script&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;x^2+1&lt;/script&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;x^3+x^2+x+1&lt;/script&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;x^3+x^2+x+1&lt;/script&gt;&lt;/td&gt;
     &lt;/tr&gt;
     &lt;tr&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;$x^2+x$&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;$x^2+x$&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;$2x^2+2x$&lt;/td&gt;
-      &lt;td style=&quot;text-align: left&quot;&gt;$0$&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;x^2+x&lt;/script&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;x^2+x&lt;/script&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;2x^2+2x&lt;/script&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;0&lt;/script&gt;&lt;/td&gt;
     &lt;/tr&gt;
   &lt;/tbody&gt;
 &lt;/table&gt;
 
 &lt;p&gt;上表中的5个例子前三个用二进制算式表示即为：&lt;/p&gt;
 
-&lt;p&gt;$1011_2 + 1100_2 = 0111_2$&lt;/p&gt;
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;1011_2 + 1100_2 = 0111_2&lt;/script&gt;
 
-&lt;p&gt;$10100_2 + 1000100_2 = 1010000_2$&lt;/p&gt;
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;10100_2 + 1000100_2 = 1010000_2&lt;/script&gt;
 
-&lt;p&gt;$11_2 + 101_2 = 110_2$&lt;/p&gt;
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;11_2 + 101_2 = 110_2&lt;/script&gt;
 
 &lt;h2 id=&quot;有限域乘法&quot;&gt;有限域乘法&lt;/h2&gt;
 
-&lt;p&gt;例如${7&lt;em&gt;{16}} \cdot {11&lt;/em&gt;{16}} = 0111&lt;em&gt;{2} \cdot 1011&lt;/em&gt;{2} =   110001&lt;em&gt;{2} = 49&lt;/em&gt;{16}$ （注意加法部分仍是异或方式）&lt;/p&gt;
+&lt;p&gt;例如&lt;script type=&quot;math/tex&quot;&gt;{7_{16}} \cdot {11_{16}} = 0111_{2} \cdot 1011_{2} =   110001_{2} = 49_{16}&lt;/script&gt; （注意加法部分仍是异或方式）&lt;/p&gt;
 
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;    111 ×
    1011 =
@@ -480,13 +480,13 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 
 &lt;p&gt;wiki中的例子：&lt;/p&gt;
 
-&lt;p&gt;给出$RP = x^8 + x^4 + x^3 + x + 1$. （$100011011_2$）&lt;/p&gt;
+&lt;p&gt;给出&lt;script type=&quot;math/tex&quot;&gt;RP = x^8 + x^4 + x^3 + x + 1&lt;/script&gt;. （&lt;script type=&quot;math/tex&quot;&gt;100011011_2&lt;/script&gt;）&lt;/p&gt;
 
-&lt;p&gt;$53&lt;em&gt;{16} \cdot CA&lt;/em&gt;{16} = 01_{16}$&lt;/p&gt;
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;53_{16} \cdot CA_{16} = 01_{16}&lt;/script&gt;
 
-&lt;p&gt;$01010011_2 \cdot 11001010_2 = 11111101111110_2$&lt;/p&gt;
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;01010011_2 \cdot 11001010_2 = 11111101111110_2&lt;/script&gt;
 
-&lt;p&gt;然后 $11111101111110_2 \ mod \ 100011011_2$&lt;/p&gt;
+&lt;p&gt;然后 &lt;script type=&quot;math/tex&quot;&gt;11111101111110_2 \ mod \ 100011011_2&lt;/script&gt;&lt;/p&gt;
 
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;         ----------------      
           11111101111110  (mod) 100011011
@@ -508,7 +508,7 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
-&lt;p&gt;所以最后结果为$01_2$.&lt;/p&gt;
+&lt;p&gt;所以最后结果为&lt;script type=&quot;math/tex&quot;&gt;01_2&lt;/script&gt;.&lt;/p&gt;
 
 &lt;h1 id=&quot;aes加密实例&quot;&gt;AES加密实例&lt;/h1&gt;
 
@@ -562,7 +562,7 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 
 &lt;p&gt;轮回加密过程图如下：&lt;/p&gt;
 
-&lt;div align=&quot;center&quot;&gt;&amp;lt;img src=&quot;img/in-post/aes/encryption_round.png&quot; width=400&amp;gt;&lt;/div&gt;
+&lt;p&gt;&lt;img src=&quot;/img/in-post/aes/encryption_round.png&quot; width=&quot;400&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;前五个步骤① ~ ⑤的状态如下：&lt;/p&gt;
 
@@ -602,7 +602,7 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 
 &lt;p&gt;这种加密模式就是最简单粗暴的将数据切分成若干个128bit，然后对每一个128bit进行单位粒度的AES加密。每一个128bit的区块可以单独拿出来加密或者解密，不影响其他区块，正因如此，加密解密均可并行。但安全性较差，攻击者不难列出128bit所有明文到密文的映射表，然后通过查表的方式就可以从密文知道对应明文。（添加随机的salt是对这种列表攻击比较好的防御）&lt;/p&gt;
 
-&lt;div align=&quot;center&quot;&gt;&amp;lt;img src=&quot;img/in-post/aes/ecb.png&quot; width=400&amp;gt;&lt;/div&gt;
+&lt;p&gt;&lt;img src=&quot;/img/in-post/aes/ecb.png&quot; width=&quot;400&quot; /&gt;&lt;/p&gt;
 
 &lt;h2 id=&quot;cbccipher-block-chaining-密码分组链接&quot;&gt;CBC(Cipher Block Chaining) ——密码分组链接&lt;/h2&gt;
 
@@ -610,22 +610,22 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 
 &lt;p&gt;若第一个块的下标为1，则CBC模式的加密过程为&lt;/p&gt;
 
-&lt;p&gt;$C_{i}=E_{K}(P_{i}\oplus C_),C_{0}=IV$&lt;/p&gt;
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;C_{i}=E_{K}(P_{i}\oplus C_),C_{0}=IV&lt;/script&gt;
 
 &lt;p&gt;而其解密过程则为&lt;/p&gt;
 
-&lt;p&gt;$P_{i}=D_{K}(C_{i})\oplus C_,C_{0}=IV$&lt;/p&gt;
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;P_{i}=D_{K}(C_{i})\oplus C_,C_{0}=IV&lt;/script&gt;
 
-&lt;p&gt;这里$IV$是初始向量，与加密单位长度相同。加密过程是串行的，无法被并行化，而且消息必须被填充到块大小的整数倍。在解密时，从两个邻接的密文块中即可得到一个平文块。因此，解密过程可以被并行化&lt;/p&gt;
+&lt;p&gt;这里&lt;script type=&quot;math/tex&quot;&gt;IV&lt;/script&gt;是初始向量，与加密单位长度相同。加密过程是串行的，无法被并行化，而且消息必须被填充到块大小的整数倍。在解密时，从两个邻接的密文块中即可得到一个平文块。因此，解密过程可以被并行化&lt;/p&gt;
 
-&lt;div align=&quot;center&quot;&gt;&amp;lt;img src=&quot;img/in-post/aes/cbc.png&quot; width=400&amp;gt;&lt;/div&gt;
+&lt;p&gt;&lt;img src=&quot;/img/in-post/aes/cbc.png&quot; width=&quot;400&quot; /&gt;&lt;/p&gt;
 
 &lt;h2 id=&quot;ctrcounter-mode-计数器模式&quot;&gt;CTR(Counter mode) ——计数器模式&lt;/h2&gt;
 
-&lt;p&gt;如图中所示，CTR也会有一个初始向量$IV$，同时，他还会有一个nonce和counter。nonce由用户指定，用以防御ECB中介绍的“列表攻击”，counter为自增算子，也可以说是数据区块索引。CTR将nonce与counter组合成的数据用key加密，生成的结果再与数据明文异或，得到该区块密文。
+&lt;p&gt;如图中所示，CTR也会有一个初始向量&lt;script type=&quot;math/tex&quot;&gt;IV&lt;/script&gt;，同时，他还会有一个nonce和counter。nonce由用户指定，用以防御ECB中介绍的“列表攻击”，counter为自增算子，也可以说是数据区块索引。CTR将nonce与counter组合成的数据用key加密，生成的结果再与数据明文异或，得到该区块密文。
 CTR不但可以并行加解密，而且不同于CBC，可以在解密时进行随机存取。由于加密和解密过程均可以进行并行处理，CTR很适合运行在多处理器的硬件上。&lt;/p&gt;
 
-&lt;div align=&quot;center&quot;&gt;&amp;lt;img src=&quot;img/in-post/aes/ctr.png&quot; width=400&amp;gt;&lt;/div&gt;
+&lt;p&gt;&lt;img src=&quot;/img/in-post/aes/ctr.png&quot; width=&quot;400&quot; /&gt;&lt;/p&gt;
 
 &lt;h1 id=&quot;参考资料&quot;&gt;参考资料&lt;/h1&gt;
 

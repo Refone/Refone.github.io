@@ -48,21 +48,8 @@
 </head>
 
 
-<!-- MathJax Section -->
 <script type="text/javascript"
-src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-<script>
-    MathJax.Hub.Config({
-          tex2jax: {
-          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre']
-          }
-    });
-    MathJax.Hub.Queue(function() {
-        var all = MathJax.Hub.getAllJax(), i;
-        for(i=0; i < all.length; i += 1) {
-            all[i].SourceElement().parentNode.className += ' has-jax';
-        }
-    });
+    src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
 </script>
 
 <!-- hack iOS CSS :active style -->
@@ -195,7 +182,7 @@ src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorM
 </code></pre>
 </div>
 
-<p>这是AES加密的最小单位。对应的AES192和AES256基本长度就是4×4×12和4×4×16.</p>
+<p>这是AES加密的最小单位。对应的AES192和AES256基本长度就是4×4×12和4×4×16.</p>
 
 <p><strong>1.密钥</strong></p>
 
@@ -203,8 +190,8 @@ src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorM
 
 <p><strong>2.转化表</strong></p>
 
-<div align="center"><img src="img/in-post/aes/S-box.png" /></div>
-<div align="center"><img src="img/in-post/aes/Inverse_S-box.png" /></div>
+<div align="center"><img src="/img/in-post/aes/S-box.png" /></div>
+<div align="center"><img src="/img/in-post/aes/Inverse_S-box.png" /></div>
 
 <p>假设字节0x00经由转化表S-box就得S(0x00) = S[0][0] = 0x63.</p>
 
@@ -214,25 +201,25 @@ src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorM
 
 <p>中文wiki百科把subRoundkey翻译为回合金钥。回合金钥与轮数有关，AES中128位元密钥有10个加密轮回，192位元有12个加密轮回，256位元有14个加密轮回，而每一个加密轮回需要用到一个回合金钥，也就是有多少个加密轮回就需要多少回合金钥，<strong>每一轮回的回合金钥长度与key相同</strong>。所有的回合金钥由密钥(key)扩展得到。回合金钥的制作过程如图所示：</p>
 
-<div align="center"><img src="img/in-post/aes/gen-round-key.png" width="400" height="400" /></div>
+<div align="center"><img src="/img/in-post/aes/gen-round-key.png" width="400" height="400" /></div>
 
 <p>密钥扩展过程说明：</p>
 
-<p>  1)  将初始密钥以列为主，转化为4个32 bits的字，分别记为$w[0…3]$；</p>
+<p>  1)  将初始密钥以列为主，转化为4个32 bits的字，分别记为<script type="math/tex">w[0…3]</script>；</p>
 
-<p>  2)  按照如下方式，依次求解$w[j]$，其中$j$是整数并且属于$[4,43]$；</p>
+<p>  2)  按照如下方式，依次求解<script type="math/tex">w[j]</script>，其中<script type="math/tex">j</script>是整数并且属于<script type="math/tex">[4,43]</script>；</p>
 
-<p>  3)  若$j\%4=0$,则 $w[j]=w[j-4] \bigoplus g(w[j-1])$ ,否则 $w[j]=w[j-4]\bigoplus w[j-1]$；</p>
+<p>  3)  若<script type="math/tex">j\%4=0</script>,则 <script type="math/tex">w[j]=w[j-4] \bigoplus g(w[j-1])</script> ,否则 <script type="math/tex">w[j]=w[j-4]\bigoplus w[j-1]</script>；</p>
 
 <p>　　函数g的流程说明：</p>
 
-<p>  4)  将$w$循环左移一个字节；</p>
+<p>  4)  将<script type="math/tex">w</script>循环左移一个字节；</p>
 
 <p>  5)  分别对每个字节按S盒进行映射；</p>
 
-<p>  6)  与32 bits的常量$(RC[j/4],0,0,0)$进行异或，$RC$是一个一维数组，其值如下。（$RC$的值只需要有10个，而此处用了11个，实际上$RC[0]$在运算中没有用到，增加$RC[0]$是为了便于程序中用数组表示。由于$j$的最小取值是4，$j/4$的最小取值则是1，因此不会产生错误。）</p>
+<p>  6)  与32 bits的常量<script type="math/tex">(RC[j/4],0,0,0)</script>进行异或，<script type="math/tex">RC</script>是一个一维数组，其值如下。（<script type="math/tex">RC</script>的值只需要有10个，而此处用了11个，实际上<script type="math/tex">RC[0]</script>在运算中没有用到，增加<script type="math/tex">RC[0]</script>是为了便于程序中用数组表示。由于<script type="math/tex">j</script>的最小取值是4，<script type="math/tex">j/4</script>的最小取值则是1，因此不会产生错误。）</p>
 
-<p>　　　　　&lt;div align="center"&gt;　$RC = {00, 01, 02, 04, 08, 10, 20, 40, 80, 1B, 36}$ &lt;/div&gt;</p>
+<script type="math/tex; mode=display">RC = {00, 01, 02, 04, 08, 10, 20, 40, 80, 1B, 36}</script>
 
 <p>项目中生成回合金钥的代码片段有两个参数需要解释：</p>
 
@@ -240,7 +227,7 @@ src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorM
 
 <p><strong>Nr</strong>：加密轮回，128位元本例采用的Nr=10。</p>
 
-<p>用代码表示回合金钥expansion流程如下：</p>
+<p>用代码表示回合金钥expansion流程如下：</p>
 <div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="cm">/*
  * Key Expansion
  */</span>
@@ -326,19 +313,19 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 
 <h2 id="行移位-the-shiftrows-step">行移位 (The ShiftRows step)</h2>
 
-<p>如图矩阵中一个方块代表一个state字节(8-bit)，实际移位的操作即是：第一行保存不变，第二行循环左移1个字节，第三行循环左移2个字节，第四行循环左移3个字节。</p>
+<p>如图矩阵中一个方块代表一个state字节(8-bit)，实际移位的操作即是：第一行保存不变，第二行循环左移1个字节，第三行循环左移2个字节，第四行循环左移3个字节</p>
 
-<div align="center">&lt;img src="img/in-post/aes/shiftrows.png" width=400&gt;</div>
+<p><img src="/img/in-post/aes/shiftrows.png" width="400" /></p>
 
 <h2 id="列混淆-the-mixcolumns-step">列混淆 (The MixColumns step)</h2>
 
-<p>简单来讲就是state矩阵左乘一个固定矩阵$A$</p>
+<p>简单来讲就是state矩阵左乘一个固定矩阵<script type="math/tex">A</script></p>
 
-<div align="center">&lt;img src="img/in-post/aes/mixcolumns.png" width=400&gt;</div>
+<p><img src="/img/in-post/aes/mixcolumns.png" width="400" /></p>
 
-<p>为何是矩阵$A$ = {02,01,01,03},{03,02,01,01},{01,03,02,01},{01,01,03,02}，暂时不明白，AES标准的意思是这个矩阵是固定的，不过按加密思路来说是可以的，只要保证解密的时候用的矩阵和该矩阵互逆即可($A\cdot A^{-1}= I$, $I$为单位矩阵)。</p>
+<p>为何是矩阵<script type="math/tex">A</script> = {02,01,01,03},{03,02,01,01},{01,03,02,01},{01,01,03,02}，暂时不明白，AES标准的意思是这个矩阵是固定的，不过按加密思路来说是可以的，只要保证解密的时候用的矩阵和该矩阵互逆即可(<script type="math/tex">A\cdot A^{-1}= I</script>, <script type="math/tex">I</script>为单位矩阵)。</p>
 
-<p>列混淆官方一点说法是，每一列都在modulo $x^4+1$ 之下，与固定多项式$c(x)=3x^{3}+x^{2}+x+2$按有限域算法相乘（有限域乘法后面专门有部分讲述），<a href="https://github.com/dhuertas/AES">[2]</a>中代码也是这样表示的：</p>
+<p>列混淆官方一点说法是，每一列都在modulo <script type="math/tex">x^4+1</script> 之下，与固定多项式<script type="math/tex">c(x)=3x^{3}+x^{2}+x+2</script>按有限域算法相乘（有限域乘法后面专门有部分讲述），<a href="https://github.com/dhuertas/AES">[2]</a>中代码也是这样表示的：</p>
 <div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">mix_columns</span><span class="p">(</span><span class="kt">uint8_t</span> <span class="o">*</span><span class="n">state</span><span class="p">)</span> <span class="p">{</span>
     
     <span class="kt">uint8_t</span> <span class="n">a</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span><span class="mh">0x02</span><span class="p">,</span> <span class="mh">0x01</span><span class="p">,</span> <span class="mh">0x01</span><span class="p">,</span> <span class="mh">0x03</span><span class="p">};</span> <span class="c1">// a(x) = {02} + {01}x + {01}x2 + {03}x3
@@ -359,7 +346,7 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 </code></pre>
 </div>
 
-<p>coef_mult实现的是${a_0a_1a_2a_3} \cdot {b_0b_1b_2b_3}$在$RP$=10001时的有限域乘法。代码如下：</p>
+<p>coef_mult实现的是<script type="math/tex">\{a_0a_1a_2a_3\} \cdot \{b_0b_1b_2b_3\}</script>在<script type="math/tex">RP</script>=10001时的有限域乘法。代码如下：</p>
 
 <div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="cm">/*
  * Multiplication of 4 byte words
@@ -375,16 +362,16 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 </code></pre>
 </div>
 
-<p>不过最终两种版本的解释殊途同归，都做了一样的事，有一样的结果——将state左乘了矩阵$A$。</p>
+<p>不过最终两种版本的解释殊途同归，都做了一样的事，有一样的结果——将state左乘了矩阵<script type="math/tex">A</script>。</p>
 
 <h2 id="轮回金钥加密the-addroundkey-step">轮回金钥加密（The AddRoundKey step）</h2>
 <p>每一轮state有16个byte，正好每一轮的轮回金钥也有16个byte，将他们对应异或就可实现该步骤。即：</p>
 
-<p>$state[i][j]’ = state[i][j] \bigoplus w[r<em>Nk + i</em>4 + j]$</p>
+<script type="math/tex; mode=display">state[i][j]' = state[i][j] \bigoplus w[r \ast Nk + i \ast 4 + j]</script>
 
 <p>也就是</p>
 
-<p>$state = state \bigoplus w[r*Nk + (0..15)]$</p>
+<script type="math/tex; mode=display">state = state \bigoplus w[r \ast Nk + (0..15)]</script>
 
 <p><br />
 笔记末尾有一个加密实例。至于为什么要进行这么复杂的步骤，貌似跟密码学有关系，满足扩散性非线性什么的，这里就没有深究下去了，认怂。</p>
@@ -399,57 +386,57 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 <table>
   <thead>
     <tr>
-      <th style="text-align: left">$p_1$</th>
-      <th style="text-align: left">$p_2$</th>
-      <th style="text-align: left">$p_1+p_2$$(normal$ $algebra)$</th>
-      <th style="text-align: left">$p_1+p_2$ in $GF(2^2)$</th>
+      <th style="text-align: left"><script type="math/tex">p_1</script></th>
+      <th style="text-align: left"><script type="math/tex">p_2</script></th>
+      <th style="text-align: left"><script type="math/tex">p_1+p_2</script><script type="math/tex">(normal</script> <script type="math/tex">algebra)</script></th>
+      <th style="text-align: left"><script type="math/tex">p_1+p_2</script> in <script type="math/tex">GF(2^2)</script></th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td style="text-align: left">$x^3+x+1$</td>
-      <td style="text-align: left">$x^3+x^2$</td>
-      <td style="text-align: left">$2x^3+x^2+x+1$</td>
-      <td style="text-align: left">$x^2+x+1$</td>
+      <td style="text-align: left"><script type="math/tex">x^3+x+1</script></td>
+      <td style="text-align: left"><script type="math/tex">x^3+x^2</script></td>
+      <td style="text-align: left"><script type="math/tex">2x^3+x^2+x+1</script></td>
+      <td style="text-align: left"><script type="math/tex">x^2+x+1</script></td>
     </tr>
     <tr>
-      <td style="text-align: left">$x^4+x^2$</td>
-      <td style="text-align: left">$x^6+x^2$</td>
-      <td style="text-align: left">$x^6+x^4+2x^2$</td>
-      <td style="text-align: left">$x^6+x^4$</td>
+      <td style="text-align: left"><script type="math/tex">x^4+x^2</script></td>
+      <td style="text-align: left"><script type="math/tex">x^6+x^2</script></td>
+      <td style="text-align: left"><script type="math/tex">x^6+x^4+2x^2</script></td>
+      <td style="text-align: left"><script type="math/tex">x^6+x^4</script></td>
     </tr>
     <tr>
-      <td style="text-align: left">$x+1$</td>
-      <td style="text-align: left">$x^2+1$</td>
-      <td style="text-align: left">$x^2+x+2$</td>
-      <td style="text-align: left">$x^2+x$</td>
+      <td style="text-align: left"><script type="math/tex">x+1</script></td>
+      <td style="text-align: left"><script type="math/tex">x^2+1</script></td>
+      <td style="text-align: left"><script type="math/tex">x^2+x+2</script></td>
+      <td style="text-align: left"><script type="math/tex">x^2+x</script></td>
     </tr>
     <tr>
-      <td style="text-align: left">$x^3+x$</td>
-      <td style="text-align: left">$x^2+1$</td>
-      <td style="text-align: left">$x^3+x^2+x+1$</td>
-      <td style="text-align: left">$x^3+x^2+x+1$</td>
+      <td style="text-align: left"><script type="math/tex">x^3+x</script></td>
+      <td style="text-align: left"><script type="math/tex">x^2+1</script></td>
+      <td style="text-align: left"><script type="math/tex">x^3+x^2+x+1</script></td>
+      <td style="text-align: left"><script type="math/tex">x^3+x^2+x+1</script></td>
     </tr>
     <tr>
-      <td style="text-align: left">$x^2+x$</td>
-      <td style="text-align: left">$x^2+x$</td>
-      <td style="text-align: left">$2x^2+2x$</td>
-      <td style="text-align: left">$0$</td>
+      <td style="text-align: left"><script type="math/tex">x^2+x</script></td>
+      <td style="text-align: left"><script type="math/tex">x^2+x</script></td>
+      <td style="text-align: left"><script type="math/tex">2x^2+2x</script></td>
+      <td style="text-align: left"><script type="math/tex">0</script></td>
     </tr>
   </tbody>
 </table>
 
 <p>上表中的5个例子前三个用二进制算式表示即为：</p>
 
-<p>$1011_2 + 1100_2 = 0111_2$</p>
+<script type="math/tex; mode=display">1011_2 + 1100_2 = 0111_2</script>
 
-<p>$10100_2 + 1000100_2 = 1010000_2$</p>
+<script type="math/tex; mode=display">10100_2 + 1000100_2 = 1010000_2</script>
 
-<p>$11_2 + 101_2 = 110_2$</p>
+<script type="math/tex; mode=display">11_2 + 101_2 = 110_2</script>
 
 <h2 id="有限域乘法">有限域乘法</h2>
 
-<p>例如${7<em>{16}} \cdot {11</em>{16}} = 0111<em>{2} \cdot 1011</em>{2} =   110001<em>{2} = 49</em>{16}$ （注意加法部分仍是异或方式）</p>
+<p>例如<script type="math/tex">{7_{16}} \cdot {11_{16}} = 0111_{2} \cdot 1011_{2} =   110001_{2} = 49_{16}</script> （注意加法部分仍是异或方式）</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>    111 ×
    1011 =
@@ -466,13 +453,13 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 
 <p>wiki中的例子：</p>
 
-<p>给出$RP = x^8 + x^4 + x^3 + x + 1$. （$100011011_2$）</p>
+<p>给出<script type="math/tex">RP = x^8 + x^4 + x^3 + x + 1</script>. （<script type="math/tex">100011011_2</script>）</p>
 
-<p>$53<em>{16} \cdot CA</em>{16} = 01_{16}$</p>
+<script type="math/tex; mode=display">53_{16} \cdot CA_{16} = 01_{16}</script>
 
-<p>$01010011_2 \cdot 11001010_2 = 11111101111110_2$</p>
+<script type="math/tex; mode=display">01010011_2 \cdot 11001010_2 = 11111101111110_2</script>
 
-<p>然后 $11111101111110_2 \ mod \ 100011011_2$</p>
+<p>然后 <script type="math/tex">11111101111110_2 \ mod \ 100011011_2</script></p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>         ----------------      
           11111101111110  (mod) 100011011
@@ -494,7 +481,7 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 </code></pre>
 </div>
 
-<p>所以最后结果为$01_2$.</p>
+<p>所以最后结果为<script type="math/tex">01_2</script>.</p>
 
 <h1 id="aes加密实例">AES加密实例</h1>
 
@@ -548,7 +535,7 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 
 <p>轮回加密过程图如下：</p>
 
-<div align="center">&lt;img src="img/in-post/aes/encryption_round.png" width=400&gt;</div>
+<p><img src="/img/in-post/aes/encryption_round.png" width="400" /></p>
 
 <p>前五个步骤① ~ ⑤的状态如下：</p>
 
@@ -588,7 +575,7 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 
 <p>这种加密模式就是最简单粗暴的将数据切分成若干个128bit，然后对每一个128bit进行单位粒度的AES加密。每一个128bit的区块可以单独拿出来加密或者解密，不影响其他区块，正因如此，加密解密均可并行。但安全性较差，攻击者不难列出128bit所有明文到密文的映射表，然后通过查表的方式就可以从密文知道对应明文。（添加随机的salt是对这种列表攻击比较好的防御）</p>
 
-<div align="center">&lt;img src="img/in-post/aes/ecb.png" width=400&gt;</div>
+<p><img src="/img/in-post/aes/ecb.png" width="400" /></p>
 
 <h2 id="cbccipher-block-chaining-密码分组链接">CBC(Cipher Block Chaining) ——密码分组链接</h2>
 
@@ -596,22 +583,22 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 
 <p>若第一个块的下标为1，则CBC模式的加密过程为</p>
 
-<p>$C_{i}=E_{K}(P_{i}\oplus C_),C_{0}=IV$</p>
+<script type="math/tex; mode=display">C_{i}=E_{K}(P_{i}\oplus C_),C_{0}=IV</script>
 
 <p>而其解密过程则为</p>
 
-<p>$P_{i}=D_{K}(C_{i})\oplus C_,C_{0}=IV$</p>
+<script type="math/tex; mode=display">P_{i}=D_{K}(C_{i})\oplus C_,C_{0}=IV</script>
 
-<p>这里$IV$是初始向量，与加密单位长度相同。加密过程是串行的，无法被并行化，而且消息必须被填充到块大小的整数倍。在解密时，从两个邻接的密文块中即可得到一个平文块。因此，解密过程可以被并行化</p>
+<p>这里<script type="math/tex">IV</script>是初始向量，与加密单位长度相同。加密过程是串行的，无法被并行化，而且消息必须被填充到块大小的整数倍。在解密时，从两个邻接的密文块中即可得到一个平文块。因此，解密过程可以被并行化</p>
 
-<div align="center">&lt;img src="img/in-post/aes/cbc.png" width=400&gt;</div>
+<p><img src="/img/in-post/aes/cbc.png" width="400" /></p>
 
 <h2 id="ctrcounter-mode-计数器模式">CTR(Counter mode) ——计数器模式</h2>
 
-<p>如图中所示，CTR也会有一个初始向量$IV$，同时，他还会有一个nonce和counter。nonce由用户指定，用以防御ECB中介绍的“列表攻击”，counter为自增算子，也可以说是数据区块索引。CTR将nonce与counter组合成的数据用key加密，生成的结果再与数据明文异或，得到该区块密文。
+<p>如图中所示，CTR也会有一个初始向量<script type="math/tex">IV</script>，同时，他还会有一个nonce和counter。nonce由用户指定，用以防御ECB中介绍的“列表攻击”，counter为自增算子，也可以说是数据区块索引。CTR将nonce与counter组合成的数据用key加密，生成的结果再与数据明文异或，得到该区块密文。
 CTR不但可以并行加解密，而且不同于CBC，可以在解密时进行随机存取。由于加密和解密过程均可以进行并行处理，CTR很适合运行在多处理器的硬件上。</p>
 
-<div align="center">&lt;img src="img/in-post/aes/ctr.png" width=400&gt;</div>
+<p><img src="/img/in-post/aes/ctr.png" width="400" /></p>
 
 <h1 id="参考资料">参考资料</h1>
 
