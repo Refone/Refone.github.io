@@ -30,8 +30,8 @@ key(4×4×8bit) + 原文(4×4×8bit) = 密文(4×4×8bit)   //（4×4×8=128)
 
 **2.转化表**
 
-<div align="center"><img src="/img/in-post/aes/S-box.png"></div> 
-<div align="center"><img src="/img/in-post/aes/Inverse_S-box.png"></div>
+<div align="center"><img src="/img/in-post/aes/s-box.png"></div> 
+<div align="center"><img src="/img/in-post/aes/inverse_S-box.png"></div>
 
 假设字节0x00经由转化表S-box就得S(0x00) = S[0][0] = 0x63.
 
