@@ -5,8 +5,8 @@
     <description></description>
     <link>http://localhost:4000/</link>
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Sun, 24 Sep 2017 13:05:33 +0800</pubDate>
-    <lastBuildDate>Sun, 24 Sep 2017 13:05:33 +0800</lastBuildDate>
+    <pubDate>Tue, 26 Sep 2017 18:42:25 +0800</pubDate>
+    <lastBuildDate>Tue, 26 Sep 2017 18:42:25 +0800</lastBuildDate>
     <generator>Jekyll v3.5.2</generator>
     
       <item>
@@ -217,8 +217,8 @@ after_success:
 
 &lt;p&gt;&lt;strong&gt;2.转化表&lt;/strong&gt;&lt;/p&gt;
 
-&lt;div align=&quot;center&quot;&gt;&lt;img src=&quot;/img/in-post/aes/S-box.png&quot; /&gt;&lt;/div&gt;
-&lt;div align=&quot;center&quot;&gt;&lt;img src=&quot;/img/in-post/aes/Inverse_S-box.png&quot; /&gt;&lt;/div&gt;
+&lt;div align=&quot;center&quot;&gt;&lt;img src=&quot;/img/in-post/aes/s-box.png&quot; /&gt;&lt;/div&gt;
+&lt;div align=&quot;center&quot;&gt;&lt;img src=&quot;/img/in-post/aes/inverse_S-box.png&quot; /&gt;&lt;/div&gt;
 
 &lt;p&gt;假设字节0x00经由转化表S-box就得S(0x00) = S[0][0] = 0x63.&lt;/p&gt;
 
