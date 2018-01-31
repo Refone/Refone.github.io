@@ -172,7 +172,7 @@
   <p>本博文是通过阅读博文<a href="http://www.mamicode.com/info-detail-514466.html">[1]</a>，并结合项目<a href="https://github.com/dhuertas/AES">[2]</a>所写，图片大部分来自wiki百科。通过一系列概念的补充和一个具体实例的示范加深理解。</p>
 </blockquote>
 
-<h1 id="准备原料">准备原料</h1>
+<h2 id="准备原料">准备原料</h2>
 
 <p>这里的原料指的是进行一次最基本的AES加密所需要具备的除源数据以外的东西。本博文暂时讨论128位的AES加密，除128位的AES加密还有192位与256位的AES加密，后文会稍稍提及，不过主要内容讨论的是128位的AES加密。</p>
 
@@ -283,7 +283,7 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 </code></pre>
 </div>
 
-<h1 id="轮回过程">轮回过程</h1>
+<h2 id="轮回过程">轮回过程</h2>
 <p>每一轮有四个过程：字节替代(subBytes)，行移位(shiftRows)，列混淆(mixColumns)，轮回金钥加密(addRoundKey)。第一轮之前首先进行一次addRoundKey，最后一轮不用addRoundKey。用代码理解就是：</p>
 <div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">Nb</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
@@ -307,17 +307,17 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 </div>
 <p>state为每轮加密完成后的状态，最开始state为输入明文in[]。接下来阐述每一个过程：</p>
 
-<h2 id="字节替代-the-subbytes-step">字节替代 (The SubBytes step)</h2>
+<h3 id="字节替代-the-subbytes-step">字节替代 (The SubBytes step)</h3>
 
 <p>就是根据S-box转换表转换，上面已经提到了转换方法。</p>
 
-<h2 id="行移位-the-shiftrows-step">行移位 (The ShiftRows step)</h2>
+<h3 id="行移位-the-shiftrows-step">行移位 (The ShiftRows step)</h3>
 
 <p>如图矩阵中一个方块代表一个state字节(8-bit)，实际移位的操作即是：第一行保存不变，第二行循环左移1个字节，第三行循环左移2个字节，第四行循环左移3个字节</p>
 
 <p><img src="/img/in-post/aes/shiftrows.png" width="400" /></p>
 
-<h2 id="列混淆-the-mixcolumns-step">列混淆 (The MixColumns step)</h2>
+<h3 id="列混淆-the-mixcolumns-step">列混淆 (The MixColumns step)</h3>
 
 <p>简单来讲就是state矩阵左乘一个固定矩阵<script type="math/tex">A</script></p>
 
@@ -364,7 +364,7 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 
 <p>不过最终两种版本的解释殊途同归，都做了一样的事，有一样的结果——将state左乘了矩阵<script type="math/tex">A</script>。</p>
 
-<h2 id="轮回金钥加密the-addroundkey-step">轮回金钥加密（The AddRoundKey step）</h2>
+<h3 id="轮回金钥加密the-addroundkey-step">轮回金钥加密（The AddRoundKey step）</h3>
 <p>每一轮state有16个byte，正好每一轮的轮回金钥也有16个byte，将他们对应异或就可实现该步骤。即：</p>
 
 <script type="math/tex; mode=display">state[i][j]' = state[i][j] \bigoplus w[r \ast Nk + i \ast 4 + j]</script>
@@ -378,9 +378,9 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 
 <p>关于AES的一切加密都是可逆的，只要掌握key，可以由密文推导出原文。笔记不再累述，<a href="https://github.com/dhuertas/AES">[2]</a>中有相应呈现。</p>
 
-<h1 id="有限域算法3">有限域算法<sup><a href="https://en.wikipedia.org/wiki/Finite_field_arithmetic">[3]</a></sup></h1>
+<h2 id="有限域算法3">有限域算法<sup><a href="https://en.wikipedia.org/wiki/Finite_field_arithmetic">[3]</a></sup></h2>
 
-<h2 id="有限域加法">有限域加法</h2>
+<h3 id="有限域加法">有限域加法</h3>
 <p>有限域加法采用异或法则</p>
 
 <table>
@@ -434,7 +434,7 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 
 <script type="math/tex; mode=display">11_2 + 101_2 = 110_2</script>
 
-<h2 id="有限域乘法">有限域乘法</h2>
+<h3 id="有限域乘法">有限域乘法</h3>
 
 <p>例如<script type="math/tex">{7_{16}} \cdot {11_{16}} = 0111_{2} \cdot 1011_{2} =   110001_{2} = 49_{16}</script> （注意加法部分仍是异或方式）</p>
 
@@ -483,7 +483,7 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 
 <p>所以最后结果为<script type="math/tex">01_2</script>.</p>
 
-<h1 id="aes加密实例">AES加密实例</h1>
+<h2 id="aes加密实例">AES加密实例</h2>
 
 <ol>
   <li>我们给出<strong>key</strong>:</li>
@@ -567,17 +567,17 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 </code></pre>
 </div>
 
-<h1 id="aes加密模式5">AES加密模式<sup><a href="https://zh.wikipedia.org/wiki/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E5%B7%A5%E4%BD%9C%E6%A8%A1%E5%BC%8F">[5]</a></sup></h1>
+<h2 id="aes加密模式5">AES加密模式<sup><a href="https://zh.wikipedia.org/wiki/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E5%B7%A5%E4%BD%9C%E6%A8%A1%E5%BC%8F">[5]</a></sup></h2>
 
 <p>以上说明的是AES单位粒度的加密流程，以128位AES加密来说，上面的流程完成了16byte(128bit)明文到16byte(128bit)密文的转换。对于更长的用户数据，大到几个GB的数据，以AES的标准又该如何去加密呢？这里常用的有三种加密方式(ECB，CBC，CTR)</p>
 
-<h2 id="ecbelectronic-codebook-book-电码本模式">ECB(Electronic Codebook Book) ——电码本模式</h2>
+<h3 id="ecbelectronic-codebook-book-电码本模式">ECB(Electronic Codebook Book) ——电码本模式</h3>
 
 <p>这种加密模式就是最简单粗暴的将数据切分成若干个128bit，然后对每一个128bit进行单位粒度的AES加密。每一个128bit的区块可以单独拿出来加密或者解密，不影响其他区块，正因如此，加密解密均可并行。但安全性较差，攻击者不难列出128bit所有明文到密文的映射表，然后通过查表的方式就可以从密文知道对应明文。（添加随机的salt是对这种列表攻击比较好的防御）</p>
 
 <p><img src="/img/in-post/aes/ecb.png" width="400" /></p>
 
-<h2 id="cbccipher-block-chaining-密码分组链接">CBC(Cipher Block Chaining) ——密码分组链接</h2>
+<h3 id="cbccipher-block-chaining-密码分组链接">CBC(Cipher Block Chaining) ——密码分组链接</h3>
 
 <p>这种模式是先将明文切分成若干小段，然后每一小段与初始块或者上一段的密文段进行异或运算后，再与密钥进行加密。</p>
 
@@ -593,14 +593,14 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 
 <p><img src="/img/in-post/aes/cbc.png" width="400" /></p>
 
-<h2 id="ctrcounter-mode-计数器模式">CTR(Counter mode) ——计数器模式</h2>
+<h3 id="ctrcounter-mode-计数器模式">CTR(Counter mode) ——计数器模式</h3>
 
 <p>如图中所示，CTR也会有一个初始向量<script type="math/tex">IV</script>，同时，他还会有一个nonce和counter。nonce由用户指定，用以防御ECB中介绍的“列表攻击”，counter为自增算子，也可以说是数据区块索引。CTR将nonce与counter组合成的数据用key加密，生成的结果再与数据明文异或，得到该区块密文。
 CTR不但可以并行加解密，而且不同于CBC，可以在解密时进行随机存取。由于加密和解密过程均可以进行并行处理，CTR很适合运行在多处理器的硬件上。</p>
 
 <p><img src="/img/in-post/aes/ctr.png" width="400" /></p>
 
-<h1 id="参考资料">参考资料</h1>
+<h2 id="参考资料">参考资料</h2>
 
 <p>[1] <a href="http://www.mamicode.com/info-detail-514466.html">密码算法详解——AES</a></p>
 
@@ -620,6 +620,10 @@ CTR不但可以并行加解密，而且不同于CBC，可以在解密时进行�
 
 
                 <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2017/07/12/upgrading-eleme-to-pwa/" data-toggle="tooltip" data-placement="top" title="饿了么的 PWA 升级实践">&larr; Previous Post</a>
+                    </li>
                     
                     
                     <li class="next">
@@ -651,6 +655,23 @@ CTR不但可以并行加解密，而且不同于CBC，可以在解密时进行�
 
             </div>
 
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+
     <!-- Sidebar Container -->
             <div class="
                 col-lg-8 col-lg-offset-2
@@ -663,6 +684,12 @@ CTR不但可以并行加解密，而且不同于CBC，可以在解密时进行�
                     <hr class="hidden-sm hidden-xs">
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
+        				
+                            
+        				
+                            
+        				
+                            
         				
                             
         				
@@ -802,7 +829,7 @@ CTR不但可以并行加解密，而且不同于CBC，可以在解密时进行�
                     
                 </ul>
                 <p class="copyright text-muted">
-                    Copyright &copy; Refone's Blog 2017
+                    Copyright &copy; Refone's Blog 2018
                     <br>
                     Theme by <a href="http://huangxuan.me">Hux</a> |
                     <iframe

@@ -5,6 +5,7 @@ subtitle:   "如果你不满足于黑盒加密算法"
 date:       2017-09-05 12:00:00
 author:     "Refone"
 header-img: "img/aes-bg.jpg"
+catalog:    true
 tags:
     - 加密
     - 安全
@@ -12,7 +13,7 @@ tags:
 
 > 本博文是通过阅读博文[[1]](http://www.mamicode.com/info-detail-514466.html)，并结合项目[[2]](https://github.com/dhuertas/AES)所写，图片大部分来自wiki百科。通过一系列概念的补充和一个具体实例的示范加深理解。
 
-# 准备原料
+## 准备原料
 
 这里的原料指的是进行一次最基本的AES加密所需要具备的除源数据以外的东西。本博文暂时讨论128位的AES加密，除128位的AES加密还有192位与256位的AES加密，后文会稍稍提及，不过主要内容讨论的是128位的AES加密。
 
@@ -123,7 +124,7 @@ b6ff744e d2c2c9bf 6c590cbf 0469bf41
 13111d7f e3944a17 f307a78b 4d2b30c5
 ```
 
-# 轮回过程
+## 轮回过程
 每一轮有四个过程：字节替代(subBytes)，行移位(shiftRows)，列混淆(mixColumns)，轮回金钥加密(addRoundKey)。第一轮之前首先进行一次addRoundKey，最后一轮不用addRoundKey。用代码理解就是：
 ```c
 for (i = 0; i < 4; i++) {
@@ -147,17 +148,17 @@ for (i = 0; i < 4; i++) {
 ```
 state为每轮加密完成后的状态，最开始state为输入明文in[]。接下来阐述每一个过程：
 
-## 字节替代 (The SubBytes step)
+### 字节替代 (The SubBytes step)
 
 就是根据S-box转换表转换，上面已经提到了转换方法。
 
-## 行移位 (The ShiftRows step)
+### 行移位 (The ShiftRows step)
 
 如图矩阵中一个方块代表一个state字节(8-bit)，实际移位的操作即是：第一行保存不变，第二行循环左移1个字节，第三行循环左移2个字节，第四行循环左移3个字节
 
 <img src="/img/in-post/aes/shiftrows.png" width="400"/>
 
-## 列混淆 (The MixColumns step)
+### 列混淆 (The MixColumns step)
 
 简单来讲就是state矩阵左乘一个固定矩阵$$A$$
 
@@ -204,7 +205,7 @@ void coef_mult(uint8_t *a, uint8_t *b, uint8_t *d) {
 
 不过最终两种版本的解释殊途同归，都做了一样的事，有一样的结果——将state左乘了矩阵$$A$$。
 
-## 轮回金钥加密（The AddRoundKey step）
+### 轮回金钥加密（The AddRoundKey step）
 每一轮state有16个byte，正好每一轮的轮回金钥也有16个byte，将他们对应异或就可实现该步骤。即：
 
 $$state[i][j]' = state[i][j] \bigoplus w[r \ast Nk + i \ast 4 + j]$$
@@ -218,9 +219,9 @@ $$state = state \bigoplus w[r \ast Nk + (0..15)]$$
 
 关于AES的一切加密都是可逆的，只要掌握key，可以由密文推导出原文。笔记不再累述，[\[2\]][2]中有相应呈现。
 
-# 有限域算法<sup>[\[3\]][3]</sup>
+## 有限域算法<sup>[\[3\]][3]</sup>
 
-## 有限域加法
+### 有限域加法
 有限域加法采用异或法则
 
 |$$p_1$$|$$p_2$$|$$p_1+p_2$$$$(normal$$ $$algebra)$$|$$p_1+p_2$$ in $$GF(2^2)$$|
@@ -239,7 +240,7 @@ $$10100_2 + 1000100_2 = 1010000_2$$
 
 $$11_2 + 101_2 = 110_2$$
 
-## 有限域乘法
+### 有限域乘法
 
 例如$${7_{16}} \cdot {11_{16}} = 0111_{2} \cdot 1011_{2} =   110001_{2} = 49_{16}$$ （注意加法部分仍是异或方式）
 
@@ -288,7 +289,7 @@ $$01010011_2 \cdot 11001010_2 = 11111101111110_2$$
 
 所以最后结果为$$01_2$$.
 
-# AES加密实例
+## AES加密实例
 
 1. 我们给出**key**:
 
@@ -363,17 +364,17 @@ d8 5a 18 12
 e8 68 d8 e4
 ```
 
-# AES加密模式<sup>[\[5\]][5]</sup>
+## AES加密模式<sup>[\[5\]][5]</sup>
 
 以上说明的是AES单位粒度的加密流程，以128位AES加密来说，上面的流程完成了16byte(128bit)明文到16byte(128bit)密文的转换。对于更长的用户数据，大到几个GB的数据，以AES的标准又该如何去加密呢？这里常用的有三种加密方式(ECB，CBC，CTR)
 
-## ECB(Electronic Codebook Book) ——电码本模式
+### ECB(Electronic Codebook Book) ——电码本模式
 
 这种加密模式就是最简单粗暴的将数据切分成若干个128bit，然后对每一个128bit进行单位粒度的AES加密。每一个128bit的区块可以单独拿出来加密或者解密，不影响其他区块，正因如此，加密解密均可并行。但安全性较差，攻击者不难列出128bit所有明文到密文的映射表，然后通过查表的方式就可以从密文知道对应明文。（添加随机的salt是对这种列表攻击比较好的防御）
 
 <img src="/img/in-post/aes/ecb.png" width="400"/>
 
-## CBC(Cipher Block Chaining) ——密码分组链接
+### CBC(Cipher Block Chaining) ——密码分组链接
 
 这种模式是先将明文切分成若干小段，然后每一小段与初始块或者上一段的密文段进行异或运算后，再与密钥进行加密。
 
@@ -389,14 +390,14 @@ $$P_{i}=D_{K}(C_{i})\oplus C_{{i-1}},C_{0}=IV$$
 
 <img src="/img/in-post/aes/cbc.png" width="400"/>
 
-## CTR(Counter mode) ——计数器模式
+### CTR(Counter mode) ——计数器模式
 
 如图中所示，CTR也会有一个初始向量$$IV$$，同时，他还会有一个nonce和counter。nonce由用户指定，用以防御ECB中介绍的“列表攻击”，counter为自增算子，也可以说是数据区块索引。CTR将nonce与counter组合成的数据用key加密，生成的结果再与数据明文异或，得到该区块密文。
 CTR不但可以并行加解密，而且不同于CBC，可以在解密时进行随机存取。由于加密和解密过程均可以进行并行处理，CTR很适合运行在多处理器的硬件上。
 
 <img src="/img/in-post/aes/ctr.png" width="400"/>
 
-# 参考资料
+## 参考资料
 
 \[1\] [密码算法详解——AES][1]
 
