@@ -1,7 +1,7 @@
 ---
 layout:     post
 title:      "如何锁定 Segmentation Fault 的病灶"
-subtitle:   "谁™告诉我我哪条语句segmentation fault了？"
+subtitle:   "告诉我,哪条语句segmentation fault了？"
 date:       2018-5-11 12:00:00
 author:     "Refone"
 header-img: "img/glass.jpg"
