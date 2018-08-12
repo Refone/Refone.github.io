@@ -1,0 +1,42 @@
+---
+layout:     post
+title:      "Xen 入门"
+subtitle:   "启动一个虚拟机"
+date:       2016-11-10 12:00:00
+author:     "Refone"
+header-img: "img/glass.jpg"
+tags:
+    - Xen
+---
+
+## 启动Xen
+
+### 下载Xen源码
+
+* 可以从github上面直接clone下来，切换到自己想要的分支。[Xen github]()
+* 可以从Xen官网上面下载下来，自己解压。[Xen Project Archives](https://www.xenproject.org/downloads/xen-archives.html)
+
+### 编译Xen
+
+* 一些lib库预先装好，不然在编译的时候会报错
+```powershell
+sudo apt-get install build-essential python-dev gettext bcc iasl uuid-dev libncurses5-dev pkg-config libglib2.0-dev libaio-dev libssl-dev libyajl-dev liblzma-dev libc6-dev-i386 libpixman-1-dev libpci-dev libsdl2-dev libsdl1.2-dev 
+```
+
+* 开始编译，打开Xen源码目录
+```powershell
+./configure                 #检查配置编译环境，少lib库会报错，通过才可进行之后的编译工作
+make xen -j8                #编译xen，8核编译
+make tools -j8              #编译xen tool，8核编译
+sudo make install-xen       #安装编译好的xen
+sudo make install-tools     #安装编译好的xen tool
+```
+
+* 更新grub列表
+```powershell
+sudo update-grub
+```
+
+### 搭建网桥
+
+

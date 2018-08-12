@@ -154,6 +154,32 @@
             ">
     			
 <div class="post-preview">
+    <a href="/2018/05/11/segfault/">
+        <h2 class="post-title">
+            如何锁定 Segmentation Fault 的病灶
+        </h2>
+        
+        <h3 class="post-subtitle">
+            告诉我,哪条语句segmentation fault了？
+        </h3>
+        
+        <div class="post-content-preview">
+            当在一个巨大的工程运行时，突然来了一个Segmentation Fault, 形如:
+[1]    1776 segmentation fault   ./hello
+
+
+怎么办？
+下意识查一下dmesg，会看到真有Error信息：
+[768977.271941] hello[1480]: segfault at 5652202637c5 ip 000056522026370b sp 000...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Refone on May 11, 2018
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
     <a href="/2017/09/05/travis/">
         <h2 class="post-title">
             Travis CI 使用指南
@@ -206,28 +232,6 @@ travis CI是一个代码自动测试与部署的开方平台，与GitHub相关�
 </div>
 <hr>
 
-<div class="post-preview">
-    <a href="/2017/07/12/upgrading-eleme-to-pwa/">
-        <h2 class="post-title">
-            饿了么的 PWA 升级实践
-        </h2>
-        
-        <h3 class="post-subtitle">
-            Upgrading Ele.me to Progressive Web App
-        </h3>
-        
-        <div class="post-content-preview">
-            
-  很荣幸在今年 2 月到 5 月的时间里，以顾问的身份加入饿了么，参与 PWA 的相关工作。这篇文章其实最初是在以英文写作发表在 medium 上的：Upgrading Ele.me to Progressive Web Apps，获得了一定的关注。所以也决定改写为中文版本再次分享出来，希望能对你有所帮助 ;) 
-本文首发于 CSDN 与《程序员》2017 年 7 月刊，同步发布于 饿了...
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by Hux on July 12, 2017
-    </p>
-</div>
-<hr>
-
 
 <!-- Pager -->
 
@@ -247,8 +251,6 @@ travis CI是一个代码自动测试与部署的开方平台，与GitHub相关�
                     <hr class="hidden-sm hidden-xs">
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
-                        
-                            
                         
                             
                         
