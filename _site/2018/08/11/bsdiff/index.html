@@ -10,9 +10,9 @@
     <meta name="keyword"  content="">
     <link rel="shortcut icon" href="/img/favicon.ico">
 
-    <title>如何锁定 Segmentation Fault 的病灶 - 刘瑞丰的博客 | Refone's Blog</title>
+    <title>差量更新与bsdiff解读 - 刘瑞丰的博客 | Refone's Blog</title>
 
-    <link rel="canonical" href="http://localhost:4000/2018/05/11/segfault/">
+    <link rel="canonical" href="http://localhost:4000/2018/08/11/bsdiff/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -140,17 +140,15 @@
                 <div class="post-heading">
                     <div class="tags">
                         
-                        <a class="tag" href="/tags/#C" title="C">C</a>
-                        
-                        <a class="tag" href="/tags/#Debug" title="Debug">Debug</a>
+                        <a class="tag" href="/tags/#工具" title="工具">工具</a>
                         
                     </div>
-                    <h1>如何锁定 Segmentation Fault 的病灶</h1>
+                    <h1>差量更新与bsdiff解读</h1>
                     
                     
-                    <h2 class="subheading">告诉我,哪条语句segmentation fault了？</h2>
+                    <h2 class="subheading">二进制大问价的差量更新</h2>
                     
-                    <span class="meta">Posted by Refone on May 11, 2018</span>
+                    <span class="meta">Posted by Refone on August 11, 2018</span>
                 </div>
             </div>
         </div>
@@ -168,114 +166,102 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <p>当在一个巨大的工程运行时，突然来了一个Segmentation Fault, 形如:</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="o">[</span>1]    1776 segmentation fault   ./hello
-</code></pre>
-</div>
-<p>怎么办？
-下意识查一下dmesg，会看到真有Error信息：</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="o">[</span>768977.271941] hello[1480]: segfault at 5652202637c5 ip 000056522026370b sp 00007ffe46ac7ae0 error 7 <span class="k">in </span>hello[565220263000+1000]
-</code></pre>
-</div>
-<p>不过这样的信息并不能锁定到底是哪一行代码出了问题。</p>
+                <h2 id="意义与应用场景">意义与应用场景</h2>
 
-<p>那么现在我们有如下方法：</p>
+<p>文件<strong>差量更新</strong>是常常会遇到的一个场景，最典型的应用场景便是软件的更新。
+用户本地的软件更新其本质是对软件文件进行一些增删修改。
+软件更新最直接粗暴的方式便是将用户本地不再应该存在的文件删掉；新添加的文件整个让客户下载添加；而对于现有文件的修改，则让客户下载整个修改后的文件，将原文件替换掉。</p>
+
+<div align="center"><img src="/img/software-update.png" /></div>
+
+<p>然而这种更新方式的弊端不言而喻，假设一个大到500M的文件，有10M左右的内容更改(如上图中的D文件)，其实我们不需要让客户端下载整整500M的文件。
+<strong>只要合理地描述这10M左右的改动，再让客户下载这10M左右的元数据，我们就可以大大缩小补丁文件的大小。这就是差量更新。</strong>
+这在手机软件领域尤其重要，若某天用户在流量环境下打开游戏，发现需要下载更新文件大达500M，相信客户此刻一定是崩溃的。</p>
+
+<h2 id="补丁技术介绍">补丁技术介绍</h2>
+
+<p><strong>diff</strong> 与 <strong>patch</strong> 是一对对应的操作。
+diff操作对比两个版本的文件(或文件夹)，分别是老文件(oldfile)和新文件(newfile)，生成补丁文件(patchfile)。
+patch操作则是由老文件和补丁文件生成新文件的过程。
+用数学表达式来形容则是：</p>
 
 <ul>
-  <li>用GDB对hello进行单步调试，锁定病灶。</li>
-  <li>在hello.c中插入print，看看到底会挂在哪里，灵性一点还可以利用二分查找</li>
-  <li>利用这行dmesg信息</li>
+  <li>
+    <p><strong>diff:</strong></p>
+
+    <script type="math/tex; mode=display">P_{N,N+1} = V_{N+1} - V_{N}</script>
+  </li>
+  <li>
+    <p><strong>patch</strong></p>
+
+    <script type="math/tex; mode=display">V_{N+1} = V_{N} + P_{N,N+1}</script>
+  </li>
+  <li>
+    <p><strong>跨版本patch*</strong></p>
+
+    <script type="math/tex; mode=display">V_{N+k} = V_{N} + P_{N,N+1} + P_{N+1,N+2} + ... + P_{N+k-1,N+k}</script>
+
+    <script type="math/tex; mode=display">= V_{N} + \sum_{i=0}^{k-1} P_{N+i,N+i+1}</script>
+
+    <p>其中 <script type="math/tex">P_{i,j}</script> 代表版本 <script type="math/tex">i</script> 到版本 <script type="math/tex">j</script> 的补丁, <script type="math/tex">V_{n}</script> 代表版本 <script type="math/tex">n</script></p>
+  </li>
 </ul>
 
-<p>前两种我们就不谈了，小程序这样调一调bug就算了，大项目运行一次说不定就是几十分钟甚至若干小时，单步调试可以调一年，更不用说每次加打印运行了，人只能活几十年。</p>
+<h2 id="bsdiff解读">bsdiff解读</h2>
 
-<p>所以，<strong>利用好宝贵的每一条error信息非常重要</strong>。</p>
+<p>bsdiff是github上一个开源项目，其功能即是diff两个二进制文件，生成patch文件。</p>
 
-<p>接下来我们来模拟这样一个错误：</p>
+<h3 id="bsdiff的diff过程略">bsdiff的diff过程(略)</h3>
 
-<h4 id="1创建存在segfault的c程序">1.创建存在segfault的c程序</h4>
-<p>hello.c :</p>
-<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="cp">#include &lt;stdio.h&gt;
-#include &lt;stdlib.h&gt;
-</span>
-<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
-<span class="p">{</span>
-    <span class="kt">char</span> <span class="o">*</span><span class="n">c</span> <span class="o">=</span> <span class="s">"hello world."</span><span class="p">;</span>
-    <span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="sc">'H'</span><span class="p">;</span>
+<p>bsdiff的diff算法引用的是 <em>Jesper Larsson</em> 的 <a href="http://www.larsson.dogma.net/ssrev-tr.pdf"> <em>FASTER SUFFIX SORTING</em> </a>。</p>
 
-    <span class="n">printf</span><span class="p">(</span><span class="s">"done.</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
-    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre>
-</div>
-<p>c程序就简单如上了，我们可以知道<code class="highlighter-rouge">c[1] = 'H'</code>会发生segment fault，因为<code class="highlighter-rouge">"hello world"</code>是一个常量字符串，<code class="highlighter-rouge">c</code>指向的是一个常量字符串，不能对它进行write access。</p>
+<p>主要思想是建立老文件的前缀索引，然后扫描新文件，尽可能将新文件内容在老文件中找到相同片段，然后将新文件长为<code class="highlighter-rouge">len</code> <script type="math/tex">Bytes</script> 的数据片段用的<code class="highlighter-rouge">oldpos</code>和<code class="highlighter-rouge">len</code>来表示，这样将原本需要 <script type="math/tex">N</script> 字节表示的内容仅需要用2个<code class="highlighter-rouge">uint64_t</code>的变量来表示，极大地压缩了patchfile的大小。</p>
 
-<h4 id="2build">2.build</h4>
-<p>接下来我们用以下的命令进行build:</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>gcc -g -o hello hello.c
-</code></pre>
-</div>
-<p>值得注意的是我们多了一个<code class="highlighter-rouge">-g</code>命令，这是用来在编译的时候产生调试信息的选项。</p>
+<p>Faster Suffix Sorting的细节我没有看太明白，所以这里就不多说了，有兴趣可以去看原版论文。我着重搞清楚了bsdiff的patchfile文件结构，以及怎么从patchfile和oldfile恢复newfile。</p>
 
-<h4 id="3运行">3.运行</h4>
-<p>果不其然，运行会报segfault</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>refone@broadwell: ~/hello
-<span class="o">[</span>0] % ./hello
-<span class="o">[</span>1]    2101 segmentation fault <span class="o">(</span>core dumped<span class="o">)</span>  ./hello
-</code></pre>
-</div>
-<p>查看dmesg,<code class="highlighter-rouge">sudo dmesg</code>可以看到如下信息:</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="o">[</span>771630.319476] hello[2101]: segfault at 5626e3ed4775 ip 00005626e3ed46cb sp 00007ffff608c710 error 7 <span class="k">in </span>hello[5626e3ed4000+1000]
-</code></pre>
-</div>
-<p>其中重要的是你知道：</p>
+<h3 id="bsdiff的patch解读">bsdiff的patch解读</h3>
+
+<p>bspatch是由patchfile和oldfile生成newfile的过程，bspatch的主要流程为：</p>
 
 <ol>
-  <li>是<strong>hello</strong>进程出了问题。</li>
-  <li>在<strong>ip 00005626e3ed46cb</strong>的位置上出了问题。</li>
+  <li>
+    <p><strong>读取控制字段</strong>。在patch文件中读取三个64bit的控制字符<code class="highlighter-rouge">ctrl[0]</code>,<code class="highlighter-rouge">ctrl[1]</code>,<code class="highlighter-rouge">ctrl[2]</code>。</p>
+  </li>
+  <li>
+    <p><strong>构造字段</strong>。<code class="highlighter-rouge">ctrl[0]</code>确定了patchfile中的diff字段长度，也确定了oldfile中原文长度以及新文件中恢复字段的长度 (如下图所示，三个文件中白色字段的长度是相等的)。newfile中恢复字段的每一个byte，由patchfile和oldfile中的对应位置的byte不进位相加得来。例如：</p>
+
+    <div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="c1">// 以下皆为十六进制表示
+// old_byte + patch_byte = new_byte
+</span>    <span class="mi">1</span> <span class="o">+</span> <span class="mi">7</span> <span class="o">=</span> <span class="mi">8</span>
+    <span class="mi">8</span> <span class="o">+</span> <span class="n">e</span> <span class="o">=</span> <span class="mi">6</span>
+</code></pre>
+    </div>
+
+    <p>如果patchfile对应byte为0，则代表oldfile与newfile对应位置上的byte相等，bsdiff的这一特点使得patchfile可以大幅度被压缩。</p>
+  </li>
+  <li>
+    <p><strong>新增字段</strong>。<code class="highlighter-rouge">ctrl[1]</code>确定了patchfile中extra字段的长度，extra字段中的内容，就是基本在oldfile中找不到pattern，需要patchfile给出数据添加的。</p>
+  </li>
+  <li>
+    <p><strong>删除字段</strong>。<code class="highlighter-rouge">ctrl[2]</code>确定了oldfile中delete字段的长度，delete字段即为oldfile中被删除的部分，图中可见oldfile灰色字段的内容并没有再出现在newfile中。</p>
+  </li>
 </ol>
 
-<h4 id="4锁定病灶">4.锁定病灶</h4>
-<p>将hello进程的可执行文件反汇编，利用<code class="highlighter-rouge">objdump</code>指令，添加<code class="highlighter-rouge">-S</code>(大写)选项以显示源代码。</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>objdump -S hello &gt; hello.s
-</code></pre>
-</div>
-<p>在<code class="highlighter-rouge">hello.s</code>汇编代码中查找ip的最后几位</p>
+<div align="center"><img src="/img/patchstruct.png" /></div>
 
-<p><strong>注意：</strong> 这个ip每次运行hello都是不同的，但也只是前面的不同，这跟kernel分配进程内存有关，但最后的进程内偏移量却是稳定的，
-所以可以从ip最后三位开始查找，重复太多则多加一位。此外，地址随机化需要关闭，这个GCC默认是关闭的，不然你会发现进程内偏移量
-也每次都会变。</p>
-<pre><code class="language-x86asm">int main()
-{
- 6b0:   55                      push   %rbp
- 6b1:   48 89 e5                mov    %rsp,%rbp
- 6b4:   48 83 ec 10             sub    $0x10,%rsp
-    char *c = "hello world.";
- 6b8:   48 8d 05 b5 00 00 00    lea    0xb5(%rip),%rax        # 774 &lt;_IO_stdin_used+0x4&gt;
- 6bf:   48 89 45 f8             mov    %rax,-0x8(%rbp)
-    c[1] = 'H';
- 6c3:   48 8b 45 f8             mov    -0x8(%rbp),%rax
- 6c7:   48 83 c0 01             add    $0x1,%rax
- 6cb:   c6 00 48                movb   $0x48,(%rax)
+<p>至此，newfile中一段内容就生成完毕了，一个newfile的生成会经由这样一个到多个段顺序拼接而成，而每个段在各自文件中的位置，则由patchfile中对应段的ctrl字段唯一确定。</p>
 
-    printf("done.\n");
- 6ce:   48 8d 3d ac 00 00 00    lea    0xac(%rip),%rdi        # 781 &lt;_IO_stdin_used+0x11&gt;
- 6d5:   e8 86 fe ff ff          callq  560 &lt;puts@plt&gt;
-    return 0;
- 6da:   b8 00 00 00 00          mov    $0x0,%eax
-}
-</code></pre>
-<p>知道在<code class="highlighter-rouge">6cb</code>的位置出错也就不难定位到是<code class="highlighter-rouge">c[1] = 'H'</code>这条语句出错了。</p>
+<script type="math/tex; mode=display">newfile = \sum newfile_i</script>
 
-<h3 id="总结">总结</h3>
+<script type="math/tex; mode=display">newfile_i = patchfile_i + oldfile_i</script>
 
-<p>我们的方式需要干这些事：</p>
+<h2 id="参考资料">参考资料</h2>
 
-<ol>
-  <li>gcc编译的时候加上-g选项。</li>
-  <li>获得dmesg信息锁定病灶的ip，主要是进程内偏移量。</li>
-  <li>用objdump反汇编进程执行文件，加上-S选项。</li>
-</ol>
+<p>[1] <a href="https://github.com/mendsley/bsdiff">bsdiff github</a></p>
+
+<p>[2] <a href="http://www.larsson.dogma.net/ssrev-tr.pdf">Larsson N J, Sadakane K. Faster suffix sorting[M]. Univ., 1999.</a></p>
+
+<p>[3] <a href="https://blog.csdn.net/add_ada/article/details/51232889">[差量更新系列1]BSDiff算法学习笔记</a></p>
 
 
                 <hr>
@@ -286,13 +272,9 @@
                 <ul class="pager">
                     
                     <li class="previous">
-                        <a href="/2017/09/05/travis/" data-toggle="tooltip" data-placement="top" title="Travis CI 使用指南">&larr; Previous Post</a>
+                        <a href="/2018/05/11/segfault/" data-toggle="tooltip" data-placement="top" title="如何锁定 Segmentation Fault 的病灶">&larr; Previous Post</a>
                     </li>
                     
-                    
-                    <li class="next">
-                        <a href="/2018/08/11/bsdiff/" data-toggle="tooltip" data-placement="top" title="差量更新与bsdiff解读">Next Post &rarr;</a>
-                    </li>
                     
                 </ul>
 
@@ -301,9 +283,9 @@
                 <!-- 多说评论框 start -->
                 <div class="comment">
                     <div class="ds-thread"
-                        data-thread-key="/2018/05/11/segfault"
-                        data-title="如何锁定 Segmentation Fault 的病灶"
-                        data-url="http://localhost:4000/2018/05/11/segfault/" >
+                        data-thread-key="/2018/08/11/bsdiff"
+                        data-title="差量更新与bsdiff解读"
+                        data-url="http://localhost:4000/2018/08/11/bsdiff/" >
                     </div>
                 </div>
                 <!-- 多说评论框 end -->
@@ -386,8 +368,8 @@
 <script type="text/javascript">
     /* * * CONFIGURATION VARIABLES * * */
     var disqus_shortname = "refone-blog";
-    var disqus_identifier = "/2018/05/11/segfault";
-    var disqus_url = "http://localhost:4000/2018/05/11/segfault/";
+    var disqus_identifier = "/2018/08/11/bsdiff";
+    var disqus_url = "http://localhost:4000/2018/08/11/bsdiff/";
 
     (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

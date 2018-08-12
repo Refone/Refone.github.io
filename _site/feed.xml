@@ -5,9 +5,117 @@
     <description></description>
     <link>http://localhost:4000/</link>
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Sun, 12 Aug 2018 15:32:09 +0800</pubDate>
-    <lastBuildDate>Sun, 12 Aug 2018 15:32:09 +0800</lastBuildDate>
+    <pubDate>Sun, 12 Aug 2018 15:56:01 +0800</pubDate>
+    <lastBuildDate>Sun, 12 Aug 2018 15:56:01 +0800</lastBuildDate>
     <generator>Jekyll v3.5.2</generator>
+    
+      <item>
+        <title>差量更新与bsdiff解读</title>
+        <description>&lt;h2 id=&quot;意义与应用场景&quot;&gt;意义与应用场景&lt;/h2&gt;
+
+&lt;p&gt;文件&lt;strong&gt;差量更新&lt;/strong&gt;是常常会遇到的一个场景，最典型的应用场景便是软件的更新。
+用户本地的软件更新其本质是对软件文件进行一些增删修改。
+软件更新最直接粗暴的方式便是将用户本地不再应该存在的文件删掉；新添加的文件整个让客户下载添加；而对于现有文件的修改，则让客户下载整个修改后的文件，将原文件替换掉。&lt;/p&gt;
+
+&lt;div align=&quot;center&quot;&gt;&lt;img src=&quot;/img/software-update.png&quot; /&gt;&lt;/div&gt;
+
+&lt;p&gt;然而这种更新方式的弊端不言而喻，假设一个大到500M的文件，有10M左右的内容更改(如上图中的D文件)，其实我们不需要让客户端下载整整500M的文件。
+&lt;strong&gt;只要合理地描述这10M左右的改动，再让客户下载这10M左右的元数据，我们就可以大大缩小补丁文件的大小。这就是差量更新。&lt;/strong&gt;
+这在手机软件领域尤其重要，若某天用户在流量环境下打开游戏，发现需要下载更新文件大达500M，相信客户此刻一定是崩溃的。&lt;/p&gt;
+
+&lt;h2 id=&quot;补丁技术介绍&quot;&gt;补丁技术介绍&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;diff&lt;/strong&gt; 与 &lt;strong&gt;patch&lt;/strong&gt; 是一对对应的操作。
+diff操作对比两个版本的文件(或文件夹)，分别是老文件(oldfile)和新文件(newfile)，生成补丁文件(patchfile)。
+patch操作则是由老文件和补丁文件生成新文件的过程。
+用数学表达式来形容则是：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;diff:&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;script type=&quot;math/tex; mode=display&quot;&gt;P_{N,N+1} = V_{N+1} - V_{N}&lt;/script&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;patch&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;script type=&quot;math/tex; mode=display&quot;&gt;V_{N+1} = V_{N} + P_{N,N+1}&lt;/script&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;跨版本patch*&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;script type=&quot;math/tex; mode=display&quot;&gt;V_{N+k} = V_{N} + P_{N,N+1} + P_{N+1,N+2} + ... + P_{N+k-1,N+k}&lt;/script&gt;
+
+    &lt;script type=&quot;math/tex; mode=display&quot;&gt;= V_{N} + \sum_{i=0}^{k-1} P_{N+i,N+i+1}&lt;/script&gt;
+
+    &lt;p&gt;其中 &lt;script type=&quot;math/tex&quot;&gt;P_{i,j}&lt;/script&gt; 代表版本 &lt;script type=&quot;math/tex&quot;&gt;i&lt;/script&gt; 到版本 &lt;script type=&quot;math/tex&quot;&gt;j&lt;/script&gt; 的补丁, &lt;script type=&quot;math/tex&quot;&gt;V_{n}&lt;/script&gt; 代表版本 &lt;script type=&quot;math/tex&quot;&gt;n&lt;/script&gt;&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;bsdiff解读&quot;&gt;bsdiff解读&lt;/h2&gt;
+
+&lt;p&gt;bsdiff是github上一个开源项目，其功能即是diff两个二进制文件，生成patch文件。&lt;/p&gt;
+
+&lt;h3 id=&quot;bsdiff的diff过程略&quot;&gt;bsdiff的diff过程(略)&lt;/h3&gt;
+
+&lt;p&gt;bsdiff的diff算法引用的是 &lt;em&gt;Jesper Larsson&lt;/em&gt; 的 &lt;a href=&quot;http://www.larsson.dogma.net/ssrev-tr.pdf&quot;&gt; &lt;em&gt;FASTER SUFFIX SORTING&lt;/em&gt; &lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;主要思想是建立老文件的前缀索引，然后扫描新文件，尽可能将新文件内容在老文件中找到相同片段，然后将新文件长为&lt;code class=&quot;highlighter-rouge&quot;&gt;len&lt;/code&gt; &lt;script type=&quot;math/tex&quot;&gt;Bytes&lt;/script&gt; 的数据片段用的&lt;code class=&quot;highlighter-rouge&quot;&gt;oldpos&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;len&lt;/code&gt;来表示，这样将原本需要 &lt;script type=&quot;math/tex&quot;&gt;N&lt;/script&gt; 字节表示的内容仅需要用2个&lt;code class=&quot;highlighter-rouge&quot;&gt;uint64_t&lt;/code&gt;的变量来表示，极大地压缩了patchfile的大小。&lt;/p&gt;
+
+&lt;p&gt;Faster Suffix Sorting的细节我没有看太明白，所以这里就不多说了，有兴趣可以去看原版论文。我着重搞清楚了bsdiff的patchfile文件结构，以及怎么从patchfile和oldfile恢复newfile。&lt;/p&gt;
+
+&lt;h3 id=&quot;bsdiff的patch解读&quot;&gt;bsdiff的patch解读&lt;/h3&gt;
+
+&lt;p&gt;bspatch是由patchfile和oldfile生成newfile的过程，bspatch的主要流程为：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;读取控制字段&lt;/strong&gt;。在patch文件中读取三个64bit的控制字符&lt;code class=&quot;highlighter-rouge&quot;&gt;ctrl[0]&lt;/code&gt;,&lt;code class=&quot;highlighter-rouge&quot;&gt;ctrl[1]&lt;/code&gt;,&lt;code class=&quot;highlighter-rouge&quot;&gt;ctrl[2]&lt;/code&gt;。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;构造字段&lt;/strong&gt;。&lt;code class=&quot;highlighter-rouge&quot;&gt;ctrl[0]&lt;/code&gt;确定了patchfile中的diff字段长度，也确定了oldfile中原文长度以及新文件中恢复字段的长度 (如下图所示，三个文件中白色字段的长度是相等的)。newfile中恢复字段的每一个byte，由patchfile和oldfile中的对应位置的byte不进位相加得来。例如：&lt;/p&gt;
+
+    &lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// 以下皆为十六进制表示
+// old_byte + patch_byte = new_byte
+&lt;/span&gt;    &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;7&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;
+    &lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;e&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;6&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+
+    &lt;p&gt;如果patchfile对应byte为0，则代表oldfile与newfile对应位置上的byte相等，bsdiff的这一特点使得patchfile可以大幅度被压缩。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;新增字段&lt;/strong&gt;。&lt;code class=&quot;highlighter-rouge&quot;&gt;ctrl[1]&lt;/code&gt;确定了patchfile中extra字段的长度，extra字段中的内容，就是基本在oldfile中找不到pattern，需要patchfile给出数据添加的。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;删除字段&lt;/strong&gt;。&lt;code class=&quot;highlighter-rouge&quot;&gt;ctrl[2]&lt;/code&gt;确定了oldfile中delete字段的长度，delete字段即为oldfile中被删除的部分，图中可见oldfile灰色字段的内容并没有再出现在newfile中。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;div align=&quot;center&quot;&gt;&lt;img src=&quot;/img/patchstruct.png&quot; /&gt;&lt;/div&gt;
+
+&lt;p&gt;至此，newfile中一段内容就生成完毕了，一个newfile的生成会经由这样一个到多个段顺序拼接而成，而每个段在各自文件中的位置，则由patchfile中对应段的ctrl字段唯一确定。&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;newfile = \sum newfile_i&lt;/script&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;newfile_i = patchfile_i + oldfile_i&lt;/script&gt;
+
+&lt;h2 id=&quot;参考资料&quot;&gt;参考资料&lt;/h2&gt;
+
+&lt;p&gt;[1] &lt;a href=&quot;https://github.com/mendsley/bsdiff&quot;&gt;bsdiff github&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;[2] &lt;a href=&quot;http://www.larsson.dogma.net/ssrev-tr.pdf&quot;&gt;Larsson N J, Sadakane K. Faster suffix sorting[M]. Univ., 1999.&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;[3] &lt;a href=&quot;https://blog.csdn.net/add_ada/article/details/51232889&quot;&gt;[差量更新系列1]BSDiff算法学习笔记&lt;/a&gt;&lt;/p&gt;
+</description>
+        <pubDate>Sat, 11 Aug 2018 20:00:00 +0800</pubDate>
+        <link>http://localhost:4000/2018/08/11/bsdiff/</link>
+        <guid isPermaLink="true">http://localhost:4000/2018/08/11/bsdiff/</guid>
+        
+        <category>工具</category>
+        
+        
+      </item>
     
       <item>
         <title>如何锁定 Segmentation Fault 的病灶</title>

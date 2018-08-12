@@ -1,17 +1,13 @@
 ---
 layout:     post
 title:      "差量更新与bsdiff解读"
-subtitle:   "二进制大文件补丁方案"
-date:       2018-08-12 12:00:00
+subtitle:   "二进制大文件的差量更新"
+date:       2018-8-11 12:00:00
 author:     "Refone"
-header-img: "img/aes-bg.jpg"
-catalog:    true
+header-img: "img/glass.jpg"
 tags:
-    - 补丁
     - 工具
 ---
-
-# 差量更新与bsdiff解读
 
 ## 意义与应用场景
 
@@ -19,7 +15,7 @@ tags:
 用户本地的软件更新其本质是对软件文件进行一些增删修改。
 软件更新最直接粗暴的方式便是将用户本地不再应该存在的文件删掉；新添加的文件整个让客户下载添加；而对于现有文件的修改，则让客户下载整个修改后的文件，将原文件替换掉。
 
-![最直接粗暴的软件更新](img/software-update.png)
+<div align="center"><img src="/img/software-update.png"></div> 
 
 然而这种更新方式的弊端不言而喻，假设一个大到500M的文件，有10M左右的内容更改(如上图中的D文件)，其实我们不需要让客户端下载整整500M的文件。
 **只要合理地描述这10M左右的改动，再让客户下载这10M左右的元数据，我们就可以大大缩小补丁文件的大小。这就是差量更新。**
@@ -43,9 +39,10 @@ patch操作则是由老文件和补丁文件生成新文件的过程。
 * **跨版本patch\***
 
   $$V_{N+k} = V_{N} + P_{N,N+1} + P_{N+1,N+2} + ... + P_{N+k-1,N+k}$$
+
   $$ = V_{N} + \sum_{i=0}^{k-1} P_{N+i,N+i+1}$$
 
-  其中 $P_{i,j}$ 代表版本 $i$ 到版本 $j$ 的补丁, $V_{n}$ 代表版本 $n$
+  其中 $$P_{i,j}$$ 代表版本 $$i$$ 到版本 $$j$$ 的补丁, $$V_{n}$$ 代表版本 $$n$$
 
 ## bsdiff解读
 
@@ -55,7 +52,7 @@ bsdiff是github上一个开源项目，其功能即是diff两个二进制文件�
 
 bsdiff的diff算法引用的是 _Jesper Larsson_ 的 [ _FASTER SUFFIX SORTING_ ](http://www.larsson.dogma.net/ssrev-tr.pdf)。
 
-主要思想是建立老文件的前缀索引，然后扫描新文件，尽可能将新文件内容在老文件中找到相同片段，然后将新文件长为```len``` $Bytes$ 的数据片段用的```oldpos```和```len```来表示，这样将原本需要 $N$ 字节表示的内容仅需要用2个```uint64_t```的变量来表示，极大地压缩了patchfile的大小。
+主要思想是建立老文件的前缀索引，然后扫描新文件，尽可能将新文件内容在老文件中找到相同片段，然后将新文件长为```len``` $$Bytes$$ 的数据片段用的```oldpos```和```len```来表示，这样将原本需要 $$N$$ 字节表示的内容仅需要用2个```uint64_t```的变量来表示，极大地压缩了patchfile的大小。
 
 Faster Suffix Sorting的细节我没有看太明白，所以这里就不多说了，有兴趣可以去看原版论文。我着重搞清楚了bsdiff的patchfile文件结构，以及怎么从patchfile和oldfile恢复newfile。
 
@@ -80,11 +77,12 @@ bspatch是由patchfile和oldfile生成newfile的过程，bspatch的主要流程�
 
 4. **删除字段**。```ctrl[2]```确定了oldfile中delete字段的长度，delete字段即为oldfile中被删除的部分，图中可见oldfile灰色字段的内容并没有再出现在newfile中。
 
-![patchstruct](img/patchstruct.png)
+<div align="center"><img src="/img/patchstruct.png"></div>
 
 至此，newfile中一段内容就生成完毕了，一个newfile的生成会经由这样一个到多个段顺序拼接而成，而每个段在各自文件中的位置，则由patchfile中对应段的ctrl字段唯一确定。
 
 $$newfile = \sum newfile_i$$
+
 $$newfile_i = patchfile_i + oldfile_i$$
 
 ## 参考资料
